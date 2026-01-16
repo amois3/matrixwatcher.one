@@ -299,6 +299,8 @@ def stream():
 
 
 if __name__ == '__main__':
-    print("🌐 Starting Matrix Watcher PWA...")
-    print("📱 Open http://localhost:5555 in your browser")
-    app.run(host='0.0.0.0', port=5555, debug=False, threaded=True)
+    import os
+    port = int(os.environ.get('PORT', 5555))
+    print(f"🌐 Starting Matrix Watcher PWA on port {port}...")
+    print(f"📱 Open http://localhost:{port} in your browser")
+    app.run(host='0.0.0.0', port=port, debug=False, threaded=True)
