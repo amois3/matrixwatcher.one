@@ -1,0 +1,61 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+dist/
+build/
+*.egg
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs (keep structure, ignore data)
+logs/anomalies/*.jsonl
+logs/anomaly_index/*.jsonl
+logs/blockchain/*.jsonl
+logs/crypto/*.jsonl
+logs/earthquake/*.jsonl
+logs/news/*.jsonl
+logs/quantum_rng/*.jsonl
+logs/space_weather/*.jsonl
+logs/weather/*.jsonl
+logs/network/*.jsonl
+logs/random/*.jsonl
+logs/system/*.jsonl
+logs/time_drift/*.jsonl
+logs/calibration/*.jsonl
+logs/calibration/*.json
+logs/patterns/*.json
+logs/patterns_test/*.json
+!logs/*/.gitkeep
+
+# Backup data
+logs_backup_buggy_data/
+
+# Hypothesis test cache
+.hypothesis/
+
+# pytest
+.pytest_cache/
+
+# Local config with secrets
+config.local.json
+
+# Mac
+.DS_Store
+
+# Log files
+*.log
+matrix_watcher.log

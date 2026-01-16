@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0d0d12">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <!-- SEO Meta Tags -->
+    <title>Matrix Watcher - Real-time Anomaly Detection & Correlation Monitor</title>
+    <meta name="description" content="Matrix Watcher observes correlations across crypto markets, quantum randomness, space weather, and seismic activity. Real-time anomaly detection dashboard. We watch, we don't explain.">
+    <meta name="keywords" content="anomaly detection, correlation monitor, crypto prediction, quantum randomness, space weather, real-time monitoring, pattern recognition">
+    <meta name="author" content="Matrix Watcher">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://matrixwatcher.space/">
+    
+    <!-- Open Graph / Social Media -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://matrixwatcher.space/">
+    <meta property="og:title" content="Matrix Watcher - Observing Correlations in Chaos">
+    <meta property="og:description" content="Real-time anomaly detection across crypto, quantum RNG, space weather, and seismic data. We watch, we don't explain.">
+    <meta property="og:image" content="https://matrixwatcher.space/static/og-image.png">
+    <meta property="og:site_name" content="Matrix Watcher">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Matrix Watcher - Observing Correlations in Chaos">
+    <meta name="twitter:description" content="Real-time anomaly detection across crypto, quantum RNG, space weather, and seismic data.">
+    <meta name="twitter:image" content="https://matrixwatcher.space/static/og-image.png">
+    
+    <!-- PWA -->
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/icon-32.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/static/icon-192.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/icon-192.png">
+    
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Matrix Watcher",
+        "url": "https://matrixwatcher.space",
+        "description": "Real-time anomaly detection and correlation monitoring across multiple data domains",
+        "applicationCategory": "UtilitiesApplication",
+        "operatingSystem": "Any",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        }
+    }
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0d0d12;
+            --bg-secondary: #13131a;
+            --bg-card: #1a1a24;
+            --bg-card-hover: #22222e;
+            --border: #2a2a3a;
+            --border-glow: #3a3a5a;
+            --text-primary: #ffffff;
+            --text-secondary: #7a7a8a;
+            --text-muted: #5a5a6a;
+            
+            /* Neon colors */
+            --neon-green: #00ff88;
+            --neon-green-glow: rgba(0, 255, 136, 0.3);
+            --neon-red: #ff3366;
+            --neon-red-glow: rgba(255, 51, 102, 0.3);
+            --neon-orange: #ff9500;
+            --neon-orange-glow: rgba(255, 149, 0, 0.3);
+            --neon-blue: #00d4ff;
+            --neon-blue-glow: rgba(0, 212, 255, 0.3);
+            --neon-purple: #aa66ff;
+            --neon-purple-glow: rgba(170, 102, 255, 0.3);
+            --neon-yellow: #ffee00;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-secondary);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .logo-icon {
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .logo-icon svg {
+            width: 42px;
+            height: 42px;
+        }
+
+        .logo-text {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px var(--neon-blue-glow);
+        }
+
+        .tagline {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+            max-width: 280px;
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--neon-green);
+            box-shadow: 0 0 10px var(--neon-green), 0 0 20px var(--neon-green-glow);
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.disconnected {
+            background: var(--neon-red);
+            box-shadow: 0 0 10px var(--neon-red);
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(0.9); }
+        }
+
+        .time-filter {
+            display: flex;
+            gap: 4px;
+            background: var(--bg-card);
+            padding: 4px;
+            border-radius: 8px;
+        }
+
+        .time-btn {
+            padding: 6px 12px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .time-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .time-btn.active {
+            background: var(--neon-blue);
+            color: #000;
+            box-shadow: 0 0 15px var(--neon-blue-glow);
+        }
+
+        /* Main Container */
+        .container {
+            display: grid;
+            grid-template-columns: 2fr 3fr;
+            gap: 1px;
+            background: var(--border);
+            min-height: calc(100vh - 75px);
+        }
+
+        @media (max-width: 900px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Panels */
+        .panel {
+            background: var(--bg-primary);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            padding: 18px 22px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--bg-secondary);
+        }
+
+        .panel-icon {
+            font-size: 24px;
+        }
+
+        .panel-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-secondary);
+        }
+
+        .panel-count {
+            background: var(--bg-card);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            color: var(--neon-blue);
+            border: 1px solid var(--border);
+        }
+
+        .panel-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 10px;
+            border: 1px solid var(--border);
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .card:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--border-glow);
+            transform: translateX(4px);
+        }
+
+        .card.new {
+            animation: slideIn 0.4s ease, glow 1s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: none; }
+            50% { box-shadow: 0 0 20px var(--neon-blue-glow); }
+        }
+
+        /* Prediction Card */
+        .prediction-card {
+            display: flex;
+            gap: 16px;
+        }
+
+        .prediction-icon {
+            font-size: 32px;
+            width: 56px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            flex-shrink: 0;
+        }
+
+        .prediction-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .prediction-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+
+        .prediction-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .prediction-prob {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-weight: 700;
+        }
+
+        .prob-high {
+            background: var(--neon-green);
+            color: #000;
+            box-shadow: 0 0 15px var(--neon-green-glow);
+        }
+
+        .prob-medium {
+            background: var(--neon-orange);
+            color: #000;
+            box-shadow: 0 0 15px var(--neon-orange-glow);
+        }
+
+        .prob-low {
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+
+        .prediction-details {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .prediction-details .label {
+            color: var(--text-muted);
+        }
+
+        .prediction-details .value {
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .prediction-details .value.green { color: var(--neon-green); }
+        .prediction-details .value.red { color: var(--neon-red); }
+        .prediction-details .value.orange { color: var(--neon-orange); }
+        .prediction-details .value.blue { color: var(--neon-blue); }
+
+        .prediction-condition {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border);
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .prediction-condition code {
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--bg-secondary);
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: var(--neon-purple);
+        }
+
+        /* Level Card - Detailed */
+        .level-card-detailed {
+            padding: 20px;
+        }
+
+        .level-card-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .level-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .level-time {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .level-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--neon-red);
+        }
+
+        .level-sources {
+            margin-bottom: 14px;
+            padding: 12px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+        }
+
+        .sources-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .source-item {
+            font-size: 14px;
+            color: var(--text-primary);
+            padding: 4px 0;
+        }
+
+        .level-comment {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 16px;
+            padding: 12px;
+            border-left: 3px solid var(--neon-purple);
+            background: rgba(170, 102, 255, 0.05);
+        }
+
+        .level-stats {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* Level Card */
+        .level-card {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        .level-badge {
+            width: 54px;
+            height: 54px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 20px;
+            font-weight: 700;
+            color: #000;
+            flex-shrink: 0;
+        }
+
+        .level-badge.l1 { background: #666; color: #fff; }
+        .level-badge.l2 { background: var(--neon-orange); box-shadow: 0 0 15px var(--neon-orange-glow); }
+        .level-badge.l3 { background: var(--neon-red); box-shadow: 0 0 15px var(--neon-red-glow); }
+        .level-badge.l4 { background: #ff0066; box-shadow: 0 0 20px rgba(255,0,102,0.4); }
+        .level-badge.l5 { background: #ff0000; box-shadow: 0 0 25px rgba(255,0,0,0.5); animation: critical-pulse 1s infinite; }
+
+        @keyframes critical-pulse {
+            0%, 100% { box-shadow: 0 0 25px rgba(255,0,0,0.5); }
+            50% { box-shadow: 0 0 40px rgba(255,0,0,0.8); }
+        }
+
+        .level-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .level-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .level-sources {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .level-time {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .level-details {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .index-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .index-normal { background: rgba(0,255,136,0.15); color: var(--neon-green); }
+        .index-elevated { background: rgba(255,149,0,0.15); color: var(--neon-orange); }
+        .index-high { background: rgba(255,51,102,0.15); color: var(--neon-red); }
+        .index-critical { background: rgba(255,0,0,0.2); color: #ff0000; animation: critical-text 1s infinite; }
+
+        @keyframes critical-text {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Empty State */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 250px;
+            color: var(--text-muted);
+            font-size: 15px;
+        }
+
+        .empty-state-icon {
+            font-size: 56px;
+            margin-bottom: 20px;
+            opacity: 0.4;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-primary); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--border-glow); }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            <div class="logo-icon">
+                <svg viewBox="0 0 100 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Eye outline -->
+                    <path d="M50 5C25 5 5 30 5 30C5 30 25 55 50 55C75 55 95 30 95 30C95 30 75 5 50 5Z" 
+                          stroke="url(#eyeGradient)" stroke-width="4" fill="none"/>
+                    <!-- Outer circle -->
+                    <circle cx="50" cy="30" r="16" stroke="url(#eyeGradient)" stroke-width="4" fill="none"/>
+                    <!-- Inner circle (pupil) -->
+                    <circle cx="50" cy="30" r="6" fill="url(#eyeGradient)"/>
+                    <defs>
+                        <linearGradient id="eyeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#00d4ff"/>
+                            <stop offset="100%" style="stop-color:#aa66ff"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+            </div>
+            <span class="logo-text">MATRIX WATCHER</span>
+        </div>
+        <div class="tagline">
+            Observing correlations in chaos. We watch, we don't explain.
+        </div>
+        <div class="header-right">
+            <div class="time-filter">
+                <button class="time-btn" data-hours="1">1H</button>
+                <button class="time-btn" data-hours="24">24H</button>
+                <button class="time-btn active" data-hours="72">3D</button>
+                <button class="time-btn" data-hours="168">7D</button>
+            </div>
+            <div class="status">
+                <div class="status-dot" id="statusDot"></div>
+                <span id="statusText">CONNECTING</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Predictions Panel -->
+        <section class="panel">
+            <div class="panel-header">
+                <span class="panel-icon">🔮</span>
+                <span class="panel-title">Predictions</span>
+                <span class="panel-count" id="predictionsCount">0</span>
+            </div>
+            <div class="panel-content" id="predictionsPanel">
+                <div class="empty-state">
+                    <div class="empty-state-icon">🔮</div>
+                    <div>Collecting data...</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Levels Panel -->
+        <section class="panel">
+            <div class="panel-header">
+                <span class="panel-icon">⚡</span>
+                <span class="panel-title">Anomaly Clusters</span>
+                <span class="panel-count" id="levelsCount">0</span>
+            </div>
+            <div class="panel-content" id="levelsPanel">
+                <div class="empty-state">
+                    <div class="empty-state-icon">⚡</div>
+                    <div>No anomalies detected</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        let isConnected = false;
+        let currentHours = 72;
+
+        // Time filter buttons
+        document.querySelectorAll('.time-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentHours = parseInt(btn.dataset.hours);
+                fetchData();
+            });
+        });
+
+        async function fetchData() {
+            try {
+                const response = await fetch(`/api/all?hours=${currentHours}`);
+                if (!response.ok) throw new Error('Network error');
+                
+                const data = await response.json();
+                
+                if (!isConnected) {
+                    isConnected = true;
+                    updateStatus(true);
+                }
+                
+                renderPredictions(data.predictions || []);
+                renderLevels(data.levels || []);
+                
+            } catch (error) {
+                console.error('Fetch error:', error);
+                if (isConnected) {
+                    isConnected = false;
+                    updateStatus(false);
+                }
+            }
+        }
+
+        function updateStatus(connected) {
+            const dot = document.getElementById('statusDot');
+            const text = document.getElementById('statusText');
+            
+            if (connected) {
+                dot.classList.remove('disconnected');
+                text.textContent = 'LIVE';
+            } else {
+                dot.classList.add('disconnected');
+                text.textContent = 'OFFLINE';
+            }
+        }
+
+        function renderPredictions(predictions) {
+            const panel = document.getElementById('predictionsPanel');
+            const count = document.getElementById('predictionsCount');
+            
+            count.textContent = predictions.length;
+            
+            if (predictions.length === 0) {
+                panel.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🔮</div>
+                        <div>Collecting pattern data...</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            panel.innerHTML = predictions.map(p => createPredictionCard(p)).join('');
+        }
+
+        function createPredictionCard(p) {
+            const probClass = p.probability >= 70 ? 'prob-high' : 
+                             p.probability >= 50 ? 'prob-medium' : 'prob-low';
+            
+            const timeStr = formatTime(p.avg_time_hours);
+            const direction = p.event.includes('pump') ? 'green' : 
+                             p.event.includes('dump') ? 'red' : 'blue';
+            
+            return `
+                <div class="card prediction-card">
+                    <div class="prediction-icon">${p.icon}</div>
+                    <div class="prediction-content">
+                        <div class="prediction-header">
+                            <span class="prediction-title">${p.description}</span>
+                            <span class="prediction-prob ${probClass}">${p.probability}%</span>
+                        </div>
+                        <div class="prediction-details">
+                            <span class="label">Expected: </span>
+                            <span class="value ${direction}">~${timeStr}</span>
+                            <br>
+                            <span class="label">Observations: </span>
+                            <span class="value">${p.observations}</span>
+                            <span class="label"> · Occurrences: </span>
+                            <span class="value">${p.occurrences}</span>
+                        </div>
+                        <div class="prediction-condition">
+                            Trigger: <code>${p.condition.replace(/_/g, ' ')}</code>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderLevels(levels) {
+            const panel = document.getElementById('levelsPanel');
+            const count = document.getElementById('levelsCount');
+            
+            count.textContent = levels.length;
+            
+            if (levels.length === 0) {
+                panel.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚡</div>
+                        <div>No anomalies in selected period</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            panel.innerHTML = levels.map(l => createLevelCard(l)).join('');
+        }
+
+        function createLevelCard(l) {
+            const indexClass = l.status === 'critical' ? 'index-critical' :
+                              l.status === 'high' ? 'index-high' :
+                              l.status === 'elevated' ? 'index-elevated' : 'index-normal';
+            
+            const levelClass = `l${l.level}`;
+            const sourcesHtml = l.sources_formatted.map(s => `<div class="source-item">${s}</div>`).join('');
+            
+            return `
+                <div class="card level-card-detailed">
+                    <div class="level-card-header">
+                        <div class="level-badge ${levelClass}">L${l.level}</div>
+                        <div class="level-meta">
+                            <span class="level-time">🕒 ${l.date_str} · ${l.time_str}</span>
+                            <span class="level-title">${l.level_icon} ${l.level_name}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="level-sources">
+                        <div class="sources-label">Sources:</div>
+                        ${sourcesHtml}
+                    </div>
+                    
+                    <div class="level-comment">
+                        ${l.comment}
+                    </div>
+                    
+                    <div class="level-stats">
+                        <div class="stat">
+                            <span class="stat-label">Anomaly Index</span>
+                            <span class="stat-value ${indexClass}">${l.index}/100</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Deviation</span>
+                            <span class="stat-value">${l.deviation}x</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Sources</span>
+                            <span class="stat-value">${l.source_count}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function formatTime(hours) {
+            if (hours < 1) return `${Math.round(hours * 60)}min`;
+            if (hours < 24) return `${hours.toFixed(1)}h`;
+            return `${(hours / 24).toFixed(1)}d`;
+        }
+
+        // Initial fetch
+        fetchData();
+        
+        // Poll every 10 seconds
+        setInterval(fetchData, 10000);
+
+        // PWA
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/static/sw.js').catch(() => {});
+        }
+    </script>
+</body>
+</html>
