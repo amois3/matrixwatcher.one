@@ -117,6 +117,29 @@
             display: flex;
             align-items: center;
             gap: 14px;
+            position: relative;
+        }
+
+        .coming-soon-badge {
+            position: absolute;
+            top: -8px;
+            right: -60px;
+            background: linear-gradient(135deg, var(--neon-orange), var(--neon-red));
+            color: #000;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 0 15px var(--neon-orange-glow);
+            animation: pulse-badge 2s infinite;
+        }
+
+        @keyframes pulse-badge {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(0.95); }
         }
 
         .logo-icon {
@@ -152,12 +175,40 @@
             max-width: 280px;
             text-align: center;
             line-height: 1.4;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .tagline:hover {
+            color: var(--neon-blue);
         }
 
         .header-right {
             display: flex;
             align-items: center;
             gap: 20px;
+        }
+
+        .utc-clock {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            color: var(--text-secondary);
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 2px;
+        }
+
+        .utc-time {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--neon-blue);
+        }
+
+        .utc-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .status {
@@ -602,6 +653,123 @@
         ::-webkit-scrollbar-track { background: var(--bg-primary); }
         ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--border-glow); }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-glow);
+            border-radius: 16px;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 40px;
+            position: relative;
+            box-shadow: 0 0 50px rgba(0, 212, 255, 0.2);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 28px;
+            cursor: pointer;
+            transition: color 0.2s;
+            line-height: 1;
+        }
+
+        .modal-close:hover {
+            color: var(--neon-red);
+        }
+
+        .modal-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 24px;
+        }
+
+        .modal-section {
+            margin-bottom: 32px;
+        }
+
+        .modal-section h3 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 18px;
+            color: var(--neon-blue);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .modal-section p {
+            color: var(--text-secondary);
+            line-height: 1.8;
+            margin-bottom: 12px;
+        }
+
+        .modal-section ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .modal-section li {
+            color: var(--text-secondary);
+            padding: 8px 0;
+            padding-left: 24px;
+            position: relative;
+        }
+
+        .modal-section li:before {
+            content: "▸";
+            position: absolute;
+            left: 0;
+            color: var(--neon-purple);
+        }
+
+        .sensor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .sensor-item {
+            background: var(--bg-card);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            font-size: 14px;
+        }
+
+        .sensor-item strong {
+            color: var(--neon-green);
+            font-family: 'JetBrains Mono', monospace;
+        }
     </style>
 </head>
 <body>
@@ -625,11 +793,16 @@
                 </svg>
             </div>
             <span class="logo-text">MATRIX WATCHER</span>
+            <span class="coming-soon-badge">Coming Soon</span>
         </div>
-        <div class="tagline">
+        <div class="tagline" onclick="openAboutModal()">
             Observing correlations in chaos. We watch, we don't explain.
         </div>
         <div class="header-right">
+            <div class="utc-clock">
+                <div class="utc-time" id="utcTime">--:--:--</div>
+                <div class="utc-label">UTC</div>
+            </div>
             <div class="time-filter">
                 <button class="time-btn" data-hours="1">1H</button>
                 <button class="time-btn" data-hours="24">24H</button>
@@ -675,9 +848,106 @@
         </section>
     </main>
 
+    <!-- About Modal -->
+    <div class="modal" id="aboutModal" onclick="closeAboutModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <button class="modal-close" onclick="closeAboutModal()">&times;</button>
+            
+            <h2 class="modal-title">About Matrix Watcher</h2>
+            
+            <div class="modal-section">
+                <h3>🎯 Mission</h3>
+                <p>Matrix Watcher is an autonomous anomaly detection system that monitors multiple independent data streams in real-time, searching for correlations that emerge from chaos. We observe patterns without attempting to explain them - letting the data speak for itself.</p>
+            </div>
+
+            <div class="modal-section">
+                <h3>📡 Data Sources</h3>
+                <p>Our system continuously monitors 7 independent sensors across different domains:</p>
+                <div class="sensor-grid">
+                    <div class="sensor-item"><strong>💰 Crypto</strong><br>Bitcoin & Ethereum price movements, volatility patterns</div>
+                    <div class="sensor-item"><strong>⛓️ Blockchain</strong><br>Network metrics, block times, transaction patterns</div>
+                    <div class="sensor-item"><strong>🎲 Quantum RNG</strong><br>True randomness from quantum fluctuations (ANU QRNG)</div>
+                    <div class="sensor-item"><strong>☀️ Space Weather</strong><br>Solar activity, geomagnetic storms, cosmic rays</div>
+                    <div class="sensor-item"><strong>🌍 Seismic</strong><br>Global earthquake activity and patterns</div>
+                    <div class="sensor-item"><strong>🌤️ Weather</strong><br>Atmospheric pressure, temperature anomalies</div>
+                    <div class="sensor-item"><strong>📰 News</strong><br>Global event streams and information flow</div>
+                </div>
+            </div>
+
+            <div class="modal-section">
+                <h3>🔍 What We're Looking For</h3>
+                <p>We search for <strong>correlations across seemingly unrelated domains</strong>. When multiple independent sensors show anomalous behavior simultaneously, it suggests something interesting is happening beneath the surface of observable reality.</p>
+                <ul>
+                    <li><strong>Level 1:</strong> Single-source anomalies (recorded, not displayed)</li>
+                    <li><strong>Level 2:</strong> Two-source correlations (recorded, not displayed)</li>
+                    <li><strong>Level 3+:</strong> Multiple correlations (displayed & alerted)</li>
+                </ul>
+            </div>
+
+            <div class="modal-section">
+                <h3>🧠 Pattern Recognition</h3>
+                <p>Our system learns from historical data to predict future events. When specific conditions occur, we calculate the probability of subsequent events based on past observations:</p>
+                <ul>
+                    <li>72-hour lookback window for pattern matching</li>
+                    <li>Bayesian probability updates with each observation</li>
+                    <li>Automatic calibration based on prediction accuracy</li>
+                    <li>Focus on crypto market movements (pumps, dumps, volatility)</li>
+                </ul>
+            </div>
+
+            <div class="modal-section">
+                <h3>⚙️ Calibration & Accuracy</h3>
+                <p>The system continuously calibrates itself to maintain prediction accuracy:</p>
+                <ul>
+                    <li><strong>Threshold Calibration:</strong> Adjusts sensitivity based on false positive rates</li>
+                    <li><strong>Brier Score Tracking:</strong> Measures prediction accuracy (lower is better)</li>
+                    <li><strong>Automatic Retraining:</strong> Updates models as new data arrives</li>
+                    <li>Target: 90%+ well-calibrated predictions</li>
+                </ul>
+            </div>
+
+            <div class="modal-section">
+                <h3>🎨 Philosophy</h3>
+                <p>Matrix Watcher doesn't claim to understand <em>why</em> correlations occur. We simply detect them, measure them, and track their predictive power. The universe is full of patterns - some meaningful, some coincidental. Our job is to watch.</p>
+            </div>
+
+            <div class="modal-section">
+                <h3>🔓 Open Source</h3>
+                <p>Matrix Watcher is open source and available on <a href="https://github.com/amois3/matrix_watcher" target="_blank" style="color: var(--neon-blue);">GitHub</a>. Built with Python, running 24/7, collecting data since December 2025.</p>
+                <p style="margin-top: 12px; font-size: 13px; color: var(--text-muted);">Note: The codebase is open source. Historical data and trained models remain proprietary.</p>
+            </div>
+        </div>
+    </div>
+
     <script>
         let isConnected = false;
         let currentHours = 72;
+
+        // About Modal
+        function openAboutModal() {
+            document.getElementById('aboutModal').classList.add('active');
+        }
+
+        function closeAboutModal(event) {
+            if (!event || event.target.id === 'aboutModal') {
+                document.getElementById('aboutModal').classList.remove('active');
+            }
+        }
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeAboutModal();
+        });
+
+        // Update UTC clock
+        function updateUTCClock() {
+            const now = new Date();
+            const utcTime = now.toISOString().substr(11, 8);
+            document.getElementById('utcTime').textContent = utcTime;
+        }
+        
+        updateUTCClock();
+        setInterval(updateUTCClock, 1000);
 
         // Time filter buttons
         document.querySelectorAll('.time-btn').forEach(btn => {
