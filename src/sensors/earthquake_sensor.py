@@ -76,6 +76,10 @@ class EarthquakeSensor(BaseSensor):
                 max_mag = earthquakes[0]["magnitude"] if earthquakes else 0.0
                 avg_mag = sum(eq["magnitude"] for eq in earthquakes) / count if count > 0 else 0.0
                 
+                # Get coordinates of strongest earthquake
+                strongest_lat = earthquakes[0]["latitude"] if earthquakes else None
+                strongest_lon = earthquakes[0]["longitude"] if earthquakes else None
+                
                 # Check for shallow earthquakes (< 70km = more dangerous)
                 shallow_count = sum(1 for eq in earthquakes if eq["depth_km"] and eq["depth_km"] < 70)
                 
@@ -85,6 +89,8 @@ class EarthquakeSensor(BaseSensor):
                         "count": count,
                         "max_magnitude": max_mag,
                         "avg_magnitude": avg_mag,
+                        "latitude": strongest_lat,  # Coordinates of strongest
+                        "longitude": strongest_lon,
                         "shallow_count": shallow_count,
                         "has_tsunami_risk": any(eq["tsunami"] for eq in earthquakes),
                         "earthquakes": earthquakes[:5],  # Top 5 strongest

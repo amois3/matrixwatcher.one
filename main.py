@@ -158,6 +158,175 @@ class MatrixWatcher:
         except Exception as e:
             logger.error(f"Error saving patterns: {e}")
     
+    def _refresh_predictions_file(self):
+        """Refresh predictions file with current active conditions.
+        
+        This ensures PWA always shows fresh predictions even without new anomalies.
+        Runs every 60 seconds to keep predictions up-to-date.
+        """
+        try:
+            import json
+            from pathlib import Path
+            from datetime import datetime
+            
+            predictions_dir = Path("logs/predictions")
+            predictions_file = predictions_dir / "current.json"
+            
+            # If file doesn't exist or is old, regenerate from recent conditions
+            if not predictions_file.exists():
+                return
+            
+            # Load current file
+            with open(predictions_file, 'r') as f:
+                data = json.load(f)
+            
+            predictions = data.get("predictions", [])
+            
+            # Filter out old predictions (older than 24 hours)
+            current_time = time.time()
+            cutoff = current_time - (24 * 3600)
+            
+            active_predictions = [
+                p for p in predictions 
+                if p.get("timestamp", 0) > cutoff
+                and p.get("event") != "earthquake_moderate"  # Remove M5.0+ (too frequent)
+            ]
+            
+            removed_count = len(predictions) - len(active_predictions)
+            logger.info(f"Refreshed predictions: {len(predictions)} → {len(active_predictions)} (removed {removed_count} old/M5.0+)")
+            
+            # Update file with filtered predictions
+            data["predictions"] = active_predictions
+            data["last_update"] = current_time
+            data["last_update_str"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            
+            with open(predictions_file, "w") as f:
+                json.dump(data, f, indent=2)
+            
+            logger.debug(f"Refreshed predictions file: {len(active_predictions)} active predictions")
+            
+        except Exception as e:
+            logger.error(f"Error refreshing predictions file: {e}")
+    
+    def _save_predictions_to_file(self, condition: Condition, probabilities: dict):
+        """Save current predictions to file for PWA real-time access.
+        
+        This ensures PWA shows EXACTLY the same data as Telegram.
+        ACCUMULATES predictions from multiple conditions instead of overwriting.
+        """
+        try:
+            import json
+            from pathlib import Path
+            from datetime import datetime
+            
+            logger.info(f"💾 Saving predictions: {len(probabilities)} events for {condition.to_key()}")
+            
+            predictions_dir = Path("logs/predictions")
+            predictions_dir.mkdir(parents=True, exist_ok=True)
+            predictions_file = predictions_dir / "current.json"
+            
+            # Load existing predictions
+            existing_predictions = []
+            if predictions_file.exists():
+                try:
+                    with open(predictions_file, 'r') as f:
+                        data = json.load(f)
+                        existing_predictions = data.get("predictions", [])
+                        logger.info(f"💾 Loaded {len(existing_predictions)} existing predictions")
+                except Exception:
+                    pass
+            
+            # Deduplicate sources
+            unique_sources = list(dict.fromkeys(condition.sources))
+            
+            # Format NEW predictions for this condition
+            new_predictions = []
+            for event_type, pred in probabilities.items():
+                # Icons and colors by event type
+                if "pump" in event_type:
+                    icon = "📈"
+                    color = "#00ff88"
+                elif "dump" in event_type:
+                    icon = "📉"
+                    color = "#ff4444"
+                elif "volatility" in event_type:
+                    icon = "⚡"
+                    color = "#ffaa00"
+                elif "blockchain" in event_type:
+                    icon = "⛓️"
+                    color = "#8888ff"
+                elif "earthquake" in event_type:
+                    icon = "🌍"
+                    color = "#ff9500"
+                elif "solar" in event_type:
+                    icon = "☀️"
+                    color = "#ffee00"
+                else:
+                    icon = "📊"
+                    color = "#8888ff"
+                
+                pred_id = f"{condition.to_key()}_{event_type}"
+                
+                new_predictions.append({
+                    "id": pred_id,
+                    "condition": condition.to_key(),
+                    "condition_level": condition.level,
+                    "condition_sources": unique_sources,
+                    "event": event_type,
+                    "description": pred.get("description", event_type),
+                    "probability": round(pred["probability"] * 100),
+                    "avg_time_hours": round(pred["avg_time_hours"], 1),
+                    "observations": pred["observations"],
+                    "occurrences": pred.get("occurrences", 0),
+                    "category": pred.get("category", "other"),
+                    "icon": icon,
+                    "color": color,
+                    "timestamp": condition.timestamp
+                })
+            
+            # Merge: remove old predictions with same ID, add new ones
+            existing_ids = {p["id"] for p in new_predictions}
+            merged_predictions = [p for p in existing_predictions if p["id"] not in existing_ids]
+            merged_predictions.extend(new_predictions)
+            
+            logger.info(f"💾 Merged: {len(existing_predictions)} existing + {len(new_predictions)} new = {len(merged_predictions)} total")
+            
+            # Filter out old predictions (older than 24 hours) AND M5.0+
+            current_time = time.time()
+            cutoff = current_time - (24 * 3600)
+            active_predictions = [
+                p for p in merged_predictions 
+                if p.get("timestamp", 0) > cutoff
+                and p.get("event") != "earthquake_moderate"  # Remove M5.0+ (too frequent)
+            ]
+            
+            logger.info(f"💾 After filtering: {len(active_predictions)} active predictions")
+            
+            # Count by category
+            crypto_count = sum(1 for p in active_predictions if p.get("category") == "crypto")
+            earthquake_count = sum(1 for p in active_predictions if p.get("category") == "earthquake")
+            logger.info(f"💾 Categories: {crypto_count} crypto, {earthquake_count} earthquake")
+            
+            # Sort by probability (desc), then by time (asc)
+            active_predictions.sort(key=lambda x: (-x["probability"], x["avg_time_hours"]))
+            
+            # Save to file
+            data = {
+                "predictions": active_predictions[:50],  # Top 50 (increased from 20)
+                "last_update": current_time,
+                "last_update_str": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            }
+            
+            with open(predictions_file, "w") as f:
+                json.dump(data, f, indent=2)
+            
+            logger.info(f"💾 Saved {len(active_predictions)} predictions to file (added {len(new_predictions)} new)")
+            
+        except Exception as e:
+            logger.error(f"Error saving predictions to file: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
+    
     async def _auto_calibration_loop(self):
         """Periodically check and perform auto-calibration."""
         while self._running:
@@ -256,12 +425,12 @@ class MatrixWatcher:
     async def _send_prediction_notification(self, condition: Condition, probabilities: dict):
         """Send prediction notification to Telegram.
         
-        Only sends notifications for CRYPTO events.
-        Other events are recorded for statistics but not notified.
+        ONLY sends notifications for CRYPTO events with meaningful probability.
+        Other events (earthquakes, solar storms) are NOT sent to avoid spam.
         
         Args:
             condition: The current condition that triggered predictions
-            probabilities: Dictionary of event predictions (already filtered by category)
+            probabilities: Dictionary of event predictions
         """
         if not self.telegram or not probabilities:
             return
@@ -269,15 +438,31 @@ class MatrixWatcher:
         try:
             from datetime import datetime
             
-            # Filter predictions with probability >= 40% (lowered for crypto)
-            significant = {k: v for k, v in probabilities.items() if v['probability'] >= 0.4}
+            # FILTER 1: Only CRYPTO events
+            crypto_events = {
+                k: v for k, v in probabilities.items() 
+                if v.get('category') == 'crypto'
+            }
+            
+            if not crypto_events:
+                return  # No crypto predictions, skip notification
+            
+            # FILTER 2: Only meaningful probabilities (≥40%)
+            # Skip <40% (too uncertain)
+            # 100% is GOOD - it means high confidence based on historical data!
+            significant = {
+                k: v for k, v in crypto_events.items() 
+                if v['probability'] >= 0.4
+            }
             
             if not significant:
-                return
+                return  # No interesting crypto predictions
             
             # Build message
             timestamp = datetime.fromtimestamp(condition.timestamp)
-            sources_str = ", ".join(condition.sources)
+            # Fix: deduplicate sources
+            unique_sources = list(dict.fromkeys(condition.sources))
+            sources_str = ", ".join(unique_sources)
             
             msg = "🔮 КРИПТО-ПРЕДСКАЗАНИЕ\n"
             msg += f"🕒 {timestamp.strftime('%d %b · %H:%M')}\n\n"
@@ -297,7 +482,6 @@ class MatrixWatcher:
                 max_time = pred.get('max_time_hours')
                 obs = pred['observations']
                 desc = pred.get('description', event_type)
-                severity = pred.get('severity', 'medium')
                 
                 # Emoji based on event type
                 if 'pump' in event_type:
@@ -309,7 +493,7 @@ class MatrixWatcher:
                 elif 'blockchain' in event_type:
                     emoji = "⛓️"
                 else:
-                    emoji = "🔴" if severity == 'high' else "🟡"
+                    emoji = "📊"
                 
                 msg += f"\n{emoji} {desc}\n"
                 msg += f"   Вероятность: {prob:.0f}%\n"
@@ -344,6 +528,8 @@ class MatrixWatcher:
                         "severity": pred.get('severity', 'medium')
                     })
             
+        except Exception as e:
+            logger.error(f"Failed to send prediction notification: {e}")
         except Exception as e:
             logger.error(f"Failed to send prediction notification: {e}")
     
@@ -439,6 +625,10 @@ class MatrixWatcher:
         # (crypto, earthquake, space_weather, blockchain - "other" excluded)
         probabilities = self.pattern_tracker.get_probabilities(condition, category_filter=None)
         
+        # Save predictions to file for PWA (real-time sync)
+        if probabilities:
+            self._save_predictions_to_file(condition, probabilities)
+        
         # Send prediction notification if we have meaningful predictions
         if probabilities:
             await self._send_prediction_notification(condition, probabilities)
@@ -471,7 +661,7 @@ class MatrixWatcher:
                 "timestamp": cluster.timestamp
             })
         
-        # Save detailed logs with index and ALL probabilities (for analysis)
+        # Save detailed logs with index and probabilities (for analysis)
         self.storage.write_anomaly({
             "source": "anomalies",
             "cluster": {
@@ -486,7 +676,6 @@ class MatrixWatcher:
                 "baseline_ratio": index_snapshot.baseline_ratio,
                 "breakdown": index_snapshot.breakdown
             },
-            "probabilities": all_probabilities,  # All probabilities for analysis
             "probabilities": probabilities,
             "timestamp": time.time()
         })
@@ -739,7 +928,11 @@ class MatrixWatcher:
         # Register Pattern Tracker save task (every 5 minutes)
         self.scheduler.register_task("pattern_tracker_save", self._save_patterns, interval=300.0)
         
-        logger.info(f"Registered {len(self._sensors)} sensors + anomaly index logger + pattern tracker")
+        # Register Predictions refresh task (every 60 seconds)
+        # This ensures PWA always has fresh predictions even without new anomalies
+        self.scheduler.register_task("predictions_refresh", self._refresh_predictions_file, interval=60.0)
+        
+        logger.info(f"Registered {len(self._sensors)} sensors + anomaly index logger + pattern tracker + predictions refresh")
 
     def _setup_event_handlers(self):
         """Set up event bus handlers."""

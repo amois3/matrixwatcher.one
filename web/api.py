@@ -68,7 +68,7 @@ manager = ConnectionManager()
 
 
 def load_recent_anomalies(hours: int = 24) -> list[dict]:
-    """Load recent anomalies from logs."""
+    """Load recent anomalies from logs (only level >= 3, deduplicated by minute)."""
     anomalies = []
     logs_path = Path("logs/anomalies")
     
@@ -77,23 +77,39 @@ def load_recent_anomalies(hours: int = 24) -> list[dict]:
     
     cutoff = time.time() - (hours * 3600)
     
-    # Get recent log files
-    for log_file in sorted(logs_path.glob("*.jsonl"), reverse=True)[:3]:
+    # Read more files for longer periods
+    days_to_read = max(3, (hours // 24) + 2)
+    
+    seen_keys = set()  # For deduplication
+    
+    for log_file in sorted(logs_path.glob("*.jsonl"), reverse=True)[:days_to_read]:
         try:
             with open(log_file, 'r') as f:
                 for line in f:
                     try:
                         data = json.loads(line.strip())
-                        if data.get("timestamp", 0) > cutoff:
-                            anomalies.append(data)
+                        level = data.get("cluster", {}).get("level", 0)
+                        ts = data.get("timestamp", 0)
+                        
+                        if level >= 3 and ts > cutoff:
+                            # Create dedup key: minute + level + sorted sources
+                            minute = int(ts // 60)
+                            sources = sorted(set(
+                                a.get("sensor_source", "") 
+                                for a in data.get("cluster", {}).get("anomalies", [])
+                            ))
+                            dedup_key = f"{minute}_{level}_{'-'.join(sources)}"
+                            
+                            if dedup_key not in seen_keys:
+                                seen_keys.add(dedup_key)
+                                anomalies.append(data)
                     except json.JSONDecodeError:
                         continue
         except Exception as e:
             logger.error(f"Error reading {log_file}: {e}")
     
-    # Sort by timestamp descending
     anomalies.sort(key=lambda x: x.get("timestamp", 0), reverse=True)
-    return anomalies[:50]  # Last 50
+    return anomalies[:100]
 
 
 def load_patterns() -> dict:
@@ -112,97 +128,114 @@ def load_patterns() -> dict:
 
 
 def get_active_predictions() -> list[dict]:
-    """Get active predictions from recent conditions."""
-    predictions = []
-    patterns = load_patterns()
+    """Get active predictions from file (real-time sync with main.py).
     
-    # Crypto event types we care about
-    crypto_events = {
-        "btc_pump_1h", "btc_dump_1h", "btc_pump_4h", "btc_dump_4h",
-        "btc_pump_24h", "btc_dump_24h", "eth_pump_1h", "eth_dump_1h",
-        "eth_pump_4h", "eth_dump_4h", "eth_pump_24h", "eth_dump_24h",
-        "btc_volatility_high", "btc_volatility_medium", "blockchain_anomaly"
-    }
+    This ensures PWA shows EXACTLY the same data as Telegram.
+    File is updated by main.py whenever new predictions are generated.
+    """
+    predictions_file = Path("logs/predictions/current.json")
     
-    for condition_key, events in patterns.items():
-        for event_type, pattern in events.items():
-            if event_type not in crypto_events:
-                continue
-            
-            if pattern["condition_count"] >= 5 and pattern["actual_probability"] >= 0.4:
-                avg_hours = pattern["avg_time_to_event"] / 3600 if pattern["avg_time_to_event"] > 0 else 0
-                
-                # Determine icon and color
-                if "pump" in event_type:
-                    icon = "📈"
-                    color = "#00ff88"
-                elif "dump" in event_type:
-                    icon = "📉"
-                    color = "#ff4444"
-                elif "volatility" in event_type:
-                    icon = "⚡"
-                    color = "#ffaa00"
-                else:
-                    icon = "⛓️"
-                    color = "#8888ff"
-                
-                # Format description
-                desc = event_type.replace("_", " ").upper()
-                if "btc" in event_type.lower():
-                    desc = desc.replace("BTC", "BTC")
-                if "eth" in event_type.lower():
-                    desc = desc.replace("ETH", "ETH")
-                
-                predictions.append({
-                    "id": f"{condition_key}_{event_type}",
-                    "condition": condition_key,
-                    "event": event_type,
-                    "description": desc,
-                    "probability": round(pattern["actual_probability"] * 100),
-                    "avg_time_hours": round(avg_hours, 1),
-                    "observations": pattern["condition_count"],
-                    "occurrences": pattern["event_after_count"],
-                    "icon": icon,
-                    "color": color,
-                    "timestamp": time.time()
-                })
+    if not predictions_file.exists():
+        return []
     
-    # Sort by probability
-    predictions.sort(key=lambda x: -x["probability"])
-    return predictions[:20]  # Top 20
+    try:
+        with open(predictions_file, 'r') as f:
+            data = json.load(f)
+        
+        predictions = data.get("predictions", [])
+        last_update = data.get("last_update", 0)
+        
+        # Filter out old predictions (older than 24 hours)
+        cutoff = time.time() - (24 * 3600)
+        active_predictions = [
+            p for p in predictions 
+            if p.get("timestamp", 0) > cutoff
+        ]
+        
+        logger.debug(f"Loaded {len(active_predictions)} active predictions from file (last update: {last_update})")
+        return active_predictions
+        
+    except Exception as e:
+        logger.error(f"Error loading predictions from file: {e}")
+        return []
 
 
 def format_level_event(anomaly: dict) -> dict | None:
-    """Format anomaly for level display."""
+    """Format anomaly for level display - detailed like Telegram but in English."""
     cluster = anomaly.get("cluster", {})
     index_data = anomaly.get("index", {})
     
     level = cluster.get("level", 0)
-    if level < 1:
+    if level < 3:  # Only show Level 3+ (significant correlations)
         return None
     
     timestamp = anomaly.get("timestamp", time.time())
-    sources = list(set(a.get("sensor_source", "unknown") for a in cluster.get("anomalies", [])))
     
-    # Color based on level
-    colors = {
-        1: "#666666",
-        2: "#ffaa00",
-        3: "#ff6600",
-        4: "#ff3333",
-        5: "#ff0000"
+    # Get sources with icons
+    source_icons = {
+        "crypto": "💰",
+        "quantum_rng": "🎲", 
+        "space_weather": "☀️",
+        "weather": "🌤️",
+        "earthquake": "🌍",
+        "blockchain": "⛓️",
+        "news": "📰"
+    }
+    
+    sources = []
+    for a in cluster.get("anomalies", []):
+        src = a.get("sensor_source", "unknown")
+        if src not in sources:
+            sources.append(src)
+    
+    sources_formatted = [f"{source_icons.get(s, '📊')} {s.replace('_', ' ').title()}" for s in sources]
+    
+    # Level descriptions
+    level_names = {
+        3: "Multiple Correlation",
+        4: "Strong Correlation", 
+        5: "Critical Anomaly"
+    }
+    
+    level_icons = {3: "🔴", 4: "🔴🔴", 5: "🚨"}
+    
+    # Calculate deviation
+    index_val = index_data.get("value", 0)
+    deviation = round(index_val / 5, 1) if index_val > 0 else 1.0
+    
+    # Format time in UTC
+    dt = datetime.utcfromtimestamp(timestamp)
+    today = datetime.utcnow().date()
+    if dt.date() == today:
+        time_str = dt.strftime("%H:%M UTC")
+        date_str = "Today"
+    else:
+        time_str = dt.strftime("%H:%M UTC")
+        date_str = dt.strftime("%d %b")
+    
+    # System comment based on level
+    comments = {
+        3: "Stable cluster of deviations detected across multiple independent domains. Observed behavior exceeds normal background.",
+        4: "Strong correlation pattern emerging. Multiple sensors showing synchronized anomalous readings.",
+        5: "Critical anomaly state. Unprecedented correlation across monitoring systems. Maximum observation priority."
     }
     
     return {
         "id": f"level_{timestamp}",
         "level": level,
+        "level_name": level_names.get(level, "Anomaly"),
+        "level_icon": level_icons.get(level, "⚠️"),
         "sources": sources,
+        "sources_formatted": sources_formatted,
         "sources_str": " + ".join(sources),
-        "index": round(index_data.get("value", 0), 1),
+        "index": round(index_val, 1),
+        "deviation": deviation,
         "status": index_data.get("status", "normal"),
         "timestamp": timestamp,
-        "time_str": datetime.fromtimestamp(timestamp).strftime("%H:%M"),
-        "color": colors.get(level, "#ffffff")
+        "time_str": time_str,
+        "date_str": date_str,
+        "comment": comments.get(level, "Anomaly detected."),
+        "source_count": len(sources)
     }
 
 
@@ -257,6 +290,22 @@ async def get_stats():
         "total_patterns": total_patterns,
         "crypto_patterns": crypto_patterns,
         "pattern_groups": len(patterns),
+        "timestamp": time.time()
+    }
+
+
+@app.get("/api/all")
+async def get_all_data(hours: int = 72):
+    """Get all data in one request."""
+    # Limit to 7 days max
+    hours = min(hours, 168)
+    
+    anomalies = load_recent_anomalies(hours)
+    level_list = [format_level_event(a) for a in anomalies if format_level_event(a)]
+    
+    return {
+        "predictions": get_active_predictions(),
+        "levels": level_list,
         "timestamp": time.time()
     }
 

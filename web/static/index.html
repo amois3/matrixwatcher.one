@@ -527,6 +527,47 @@
         .prediction-details .value.red { color: var(--neon-red); }
         .prediction-details .value.orange { color: var(--neon-orange); }
         .prediction-details .value.blue { color: var(--neon-blue); }
+        
+        .prediction-details .value.prob-high { color: var(--neon-green); }
+        .prediction-details .value.prob-medium { color: var(--neon-orange); }
+        .prediction-details .value.prob-low { color: var(--text-muted); }
+        
+        .prediction-time {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin: 6px 0 10px 0;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .prediction-alternatives {
+            margin-top: 12px;
+            padding: 10px 14px;
+            background: rgba(138, 43, 226, 0.08);
+            border-radius: 6px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            border-left: 3px solid var(--neon-purple);
+            font-weight: 500;
+        }
+        
+        .alt-hint {
+            display: block;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            font-weight: 400;
+        }
+        
+        .prediction-explanation {
+            margin: 12px 0;
+            padding: 10px;
+            background: var(--bg-secondary);
+            border-left: 3px solid var(--neon-blue);
+            border-radius: 4px;
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text-secondary);
+        }
 
         .prediction-condition {
             margin-top: 10px;
@@ -1083,9 +1124,8 @@
             const panel = document.getElementById('predictionsPanel');
             const count = document.getElementById('predictionsCount');
             
-            count.textContent = predictions.length;
-            
             if (predictions.length === 0) {
+                count.textContent = '0';
                 panel.innerHTML = `
                     <div class="empty-state">
                         <div class="empty-state-icon">🔮</div>
@@ -1095,7 +1135,44 @@
                 return;
             }
             
-            panel.innerHTML = predictions.map(p => createPredictionCard(p)).join('');
+            // Group predictions by event type
+            const grouped = {};
+            predictions.forEach(p => {
+                if (!grouped[p.event]) {
+                    grouped[p.event] = [];
+                }
+                grouped[p.event].push(p);
+            });
+            
+            // For each event, pick the BEST prediction:
+            // 1. Filter by highest probability (100%)
+            // 2. Among those, pick the MOST RECENT (latest timestamp)
+            // 3. If no 100%, then by probability + time
+            const bestPredictions = [];
+            for (const [event, preds] of Object.entries(grouped)) {
+                // Find max probability
+                const maxProb = Math.max(...preds.map(p => p.probability));
+                
+                // Get all predictions with max probability
+                const topPreds = preds.filter(p => p.probability === maxProb);
+                
+                // Among top probability, pick most recent
+                topPreds.sort((a, b) => b.timestamp - a.timestamp);
+                
+                const best = topPreds[0];
+                best.alternatives = preds.filter(p => p.id !== best.id); // All others
+                best.total_conditions = preds.length;
+                bestPredictions.push(best);
+            }
+            
+            // Sort best predictions by probability, then by recency
+            bestPredictions.sort((a, b) => {
+                if (b.probability !== a.probability) return b.probability - a.probability;
+                return b.timestamp - a.timestamp; // Most recent first
+            });
+            
+            count.textContent = bestPredictions.length;
+            panel.innerHTML = bestPredictions.map(p => createPredictionCard(p)).join('');
         }
 
         function createPredictionCard(p) {
@@ -1106,6 +1183,20 @@
             const direction = p.event.includes('pump') ? 'green' : 
                              p.event.includes('dump') ? 'red' : 'blue';
             
+            // Human-readable trigger description with time
+            const triggerText = formatTrigger(p.condition, p.event, timeStr);
+            
+            // Format detection time
+            const detectionTime = formatDetectionTime(p.timestamp);
+            
+            // Alternative conditions info
+            const altInfo = p.total_conditions > 1 
+                ? `<div class="prediction-alternatives">
+                     ${p.total_conditions} different patterns observed for this event
+                     <span class="alt-hint">Showing most recent with highest probability</span>
+                   </div>`
+                : '';
+            
             return `
                 <div class="card prediction-card">
                     <div class="prediction-icon">${p.icon}</div>
@@ -1114,18 +1205,17 @@
                             <span class="prediction-title">${p.description}</span>
                             <span class="prediction-prob ${probClass}">${p.probability}%</span>
                         </div>
+                        <div class="prediction-time">
+                            🕒 ${detectionTime}
+                        </div>
+                        <div class="prediction-explanation">
+                            ${triggerText}
+                        </div>
                         <div class="prediction-details">
-                            <span class="label">Expected: </span>
-                            <span class="value ${direction}">~${timeStr}</span>
-                            <br>
-                            <span class="label">Observations: </span>
-                            <span class="value">${p.observations}</span>
-                            <span class="label"> · Occurrences: </span>
-                            <span class="value">${p.occurrences}</span>
+                            <span class="label">Based on:</span>
+                            <span class="value">${p.observations} similar patterns</span>
                         </div>
-                        <div class="prediction-condition">
-                            Trigger: <code>${p.condition.replace(/_/g, ' ')}</code>
-                        </div>
+                        ${altInfo}
                     </div>
                 </div>
             `;
@@ -1199,6 +1289,92 @@
             if (hours < 1) return `${Math.round(hours * 60)}min`;
             if (hours < 24) return `${hours.toFixed(1)}h`;
             return `${(hours / 24).toFixed(1)}d`;
+        }
+        
+        function formatDetectionTime(timestamp) {
+            const date = new Date(timestamp * 1000);
+            const now = new Date();
+            
+            // Get UTC dates for comparison
+            const todayUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+            const detectionDateUTC = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+            
+            // Format time in UTC
+            const hours = String(date.getUTCHours()).padStart(2, '0');
+            const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+            const timeStr = `${hours}:${minutes} UTC`;
+            
+            // Check if today (UTC)
+            if (detectionDateUTC.getTime() === todayUTC.getTime()) {
+                return `Today · ${timeStr}`;
+            }
+            
+            // Check if yesterday (UTC)
+            const yesterdayUTC = new Date(todayUTC);
+            yesterdayUTC.setUTCDate(yesterdayUTC.getUTCDate() - 1);
+            if (detectionDateUTC.getTime() === yesterdayUTC.getTime()) {
+                return `Yesterday · ${timeStr}`;
+            }
+            
+            // Otherwise show date (UTC)
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const dateStr = `${months[date.getUTCMonth()]} ${date.getUTCDate()}`;
+            return `${dateStr} · ${timeStr}`;
+        }
+        
+        function formatTrigger(condition, event, timeStr) {
+            // Parse condition: "L1_crypto" or "L2_crypto_earthquake"
+            const parts = condition.split('_');
+            const level = parts[0]; // L1, L2, etc
+            const sources = parts.slice(1); // crypto, earthquake, etc
+            
+            // Human-readable source names
+            const sourceNames = {
+                'crypto': 'crypto',
+                'earthquake': 'seismic',
+                'quantum': 'quantum',
+                'rng': 'randomness',
+                'space': 'solar',
+                'weather': 'space weather',
+                'blockchain': 'blockchain',
+                'news': 'news'
+            };
+            
+            // Build readable source list
+            const readableSources = sources.map(s => {
+                for (const [key, name] of Object.entries(sourceNames)) {
+                    if (s.includes(key)) return name;
+                }
+                return s;
+            }).filter((v, i, a) => a.indexOf(v) === i); // unique
+            
+            // Event descriptions
+            const eventDescriptions = {
+                'pump': 'price surge',
+                'dump': 'price drop',
+                'volatility': 'high volatility',
+                'earthquake': 'earthquake',
+                'solar': 'solar activity',
+                'storm': 'geomagnetic storm',
+                'blockchain': 'blockchain anomaly'
+            };
+            
+            let eventDesc = 'this event';
+            for (const [key, desc] of Object.entries(eventDescriptions)) {
+                if (event.includes(key)) {
+                    eventDesc = desc;
+                    break;
+                }
+            }
+            
+            // Build explanation with time - more specific
+            if (readableSources.length === 1) {
+                return `When ${readableSources[0]} shows unusual activity, ${eventDesc} typically follows within ~${timeStr}`;
+            } else if (readableSources.length === 2) {
+                return `When ${readableSources[0]} and ${readableSources[1]} sensors both show anomalies, ${eventDesc} typically follows within ~${timeStr}`;
+            } else {
+                return `When ${readableSources.length} sensors correlate (${readableSources.join(', ')}), ${eventDesc} typically follows within ~${timeStr}`;
+            }
         }
 
         // Initial fetch

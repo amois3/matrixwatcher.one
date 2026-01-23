@@ -53,6 +53,7 @@ class Event:
     event_type: str  # e.g., "btc_pump_1h", "btc_dump_24h", etc.
     severity: str  # "low", "medium", "high"
     metadata: dict[str, Any] = field(default_factory=dict)
+    location: tuple[float, float] | None = None  # (lat, lon) for geographic events
 
 
 @dataclass
@@ -74,6 +75,9 @@ class Pattern:
     predicted_probability: float = 0.0  # What we said
     actual_probability: float = 0.0  # What actually happened
     brier_score: float = 0.0  # Calibration metric (lower is better)
+    
+    # Geographic data (for future clustering)
+    event_locations: list[tuple[float, float]] = field(default_factory=list)  # [(lat, lon), ...]
     
     def update_probability(self):
         """Update actual probability based on observations."""
@@ -123,113 +127,114 @@ class HistoricalPatternTracker:
         # Load existing patterns
         self._load_patterns()
         
+        # Load price history from logs (for crypto pump/dump detection)
+        self._load_price_history()
+        
         logger.info(f"Historical Pattern Tracker initialized (lookback: {self.LOOKBACK_WINDOW_HOURS}h)")
     
     def _create_event_definitions(self) -> dict[str, dict]:
         """Define what events we track.
         
-        CRYPTO EVENTS (main focus):
-        - Pumps/Dumps on different timeframes (1h, 4h, 24h)
-        - Thresholds based on typical crypto volatility
-        
-        OTHER EVENTS (for correlation analysis):
-        - Earthquakes, space weather, quantum anomalies
-        - Recorded for statistics but notifications filtered
+        BALANCED APPROACH - interesting for everyone:
+        - Crypto traders: pump/dump predictions
+        - Earthquake watchers: significant quakes
+        - Space weather enthusiasts: solar storms
+        - General public: major events only
         """
         return {
             # ============ CRYPTO: BTC ============
-            # 1-hour movements
+            # 1-hour movements (short-term traders)
             "btc_pump_1h": {
-                "check": lambda data: self._check_crypto_move(data, "BTC", "pump", hours=1, threshold=1.5),
+                "check": lambda data: self._check_crypto_move(data, "BTC", "pump", hours=1, threshold=2.0),
                 "severity": "medium",
-                "description": "BTC рост > 1.5% за 1ч",
+                "description": "BTC surge > 2% in 1h",
                 "category": "crypto"
             },
             "btc_dump_1h": {
-                "check": lambda data: self._check_crypto_move(data, "BTC", "dump", hours=1, threshold=1.5),
+                "check": lambda data: self._check_crypto_move(data, "BTC", "dump", hours=1, threshold=2.0),
                 "severity": "medium",
-                "description": "BTC падение > 1.5% за 1ч",
+                "description": "BTC drop > 2% in 1h",
                 "category": "crypto"
             },
-            # 4-hour movements
+            # 4-hour movements (swing traders)
             "btc_pump_4h": {
-                "check": lambda data: self._check_crypto_move(data, "BTC", "pump", hours=4, threshold=3.0),
+                "check": lambda data: self._check_crypto_move(data, "BTC", "pump", hours=4, threshold=4.0),
                 "severity": "high",
-                "description": "BTC рост > 3% за 4ч",
+                "description": "BTC surge > 4% in 4h",
                 "category": "crypto"
             },
             "btc_dump_4h": {
-                "check": lambda data: self._check_crypto_move(data, "BTC", "dump", hours=4, threshold=3.0),
+                "check": lambda data: self._check_crypto_move(data, "BTC", "dump", hours=4, threshold=4.0),
                 "severity": "high",
-                "description": "BTC падение > 3% за 4ч",
+                "description": "BTC drop > 4% in 4h",
                 "category": "crypto"
             },
-            # 24-hour movements
+            # 24-hour movements (position traders)
             "btc_pump_24h": {
-                "check": lambda data: self._check_crypto_move(data, "BTC", "pump", hours=24, threshold=5.0),
+                "check": lambda data: self._check_crypto_move(data, "BTC", "pump", hours=24, threshold=7.0),
                 "severity": "high",
-                "description": "BTC рост > 5% за 24ч",
+                "description": "BTC surge > 7% in 24h",
                 "category": "crypto"
             },
             "btc_dump_24h": {
-                "check": lambda data: self._check_crypto_move(data, "BTC", "dump", hours=24, threshold=5.0),
+                "check": lambda data: self._check_crypto_move(data, "BTC", "dump", hours=24, threshold=7.0),
                 "severity": "high",
-                "description": "BTC падение > 5% за 24ч",
+                "description": "BTC drop > 7% in 24h",
                 "category": "crypto"
             },
             
             # ============ CRYPTO: ETH ============
             # 1-hour movements
             "eth_pump_1h": {
-                "check": lambda data: self._check_crypto_move(data, "ETH", "pump", hours=1, threshold=2.0),
+                "check": lambda data: self._check_crypto_move(data, "ETH", "pump", hours=1, threshold=2.5),
                 "severity": "medium",
-                "description": "ETH рост > 2% за 1ч",
+                "description": "ETH surge > 2.5% in 1h",
                 "category": "crypto"
             },
             "eth_dump_1h": {
-                "check": lambda data: self._check_crypto_move(data, "ETH", "dump", hours=1, threshold=2.0),
+                "check": lambda data: self._check_crypto_move(data, "ETH", "dump", hours=1, threshold=2.5),
                 "severity": "medium",
-                "description": "ETH падение > 2% за 1ч",
+                "description": "ETH drop > 2.5% in 1h",
                 "category": "crypto"
             },
             # 4-hour movements
             "eth_pump_4h": {
-                "check": lambda data: self._check_crypto_move(data, "ETH", "pump", hours=4, threshold=4.0),
+                "check": lambda data: self._check_crypto_move(data, "ETH", "pump", hours=4, threshold=5.0),
                 "severity": "high",
-                "description": "ETH рост > 4% за 4ч",
+                "description": "ETH surge > 5% in 4h",
                 "category": "crypto"
             },
             "eth_dump_4h": {
-                "check": lambda data: self._check_crypto_move(data, "ETH", "dump", hours=4, threshold=4.0),
+                "check": lambda data: self._check_crypto_move(data, "ETH", "dump", hours=4, threshold=5.0),
                 "severity": "high",
-                "description": "ETH падение > 4% за 4ч",
+                "description": "ETH drop > 5% in 4h",
                 "category": "crypto"
             },
             # 24-hour movements
             "eth_pump_24h": {
-                "check": lambda data: self._check_crypto_move(data, "ETH", "pump", hours=24, threshold=7.0),
+                "check": lambda data: self._check_crypto_move(data, "ETH", "pump", hours=24, threshold=10.0),
                 "severity": "high",
-                "description": "ETH рост > 7% за 24ч",
+                "description": "ETH surge > 10% in 24h",
                 "category": "crypto"
             },
             "eth_dump_24h": {
-                "check": lambda data: self._check_crypto_move(data, "ETH", "dump", hours=24, threshold=7.0),
+                "check": lambda data: self._check_crypto_move(data, "ETH", "dump", hours=24, threshold=10.0),
                 "severity": "high",
-                "description": "ETH падение > 7% за 24ч",
+                "description": "ETH drop > 10% in 24h",
                 "category": "crypto"
             },
             
             # ============ CRYPTO: Volatility ============
             "btc_volatility_high": {
-                "check": lambda data: self._check_btc_volatility(data, threshold=3.0),
+                "check": lambda data: self._check_btc_volatility(data, threshold=2.5),
                 "severity": "high",
-                "description": "Высокая волатильность BTC > 3%",
+                "description": "BTC high volatility > 2.5%",
                 "category": "crypto"
             },
             "btc_volatility_medium": {
-                "check": lambda data: self._check_btc_volatility(data, threshold=2.0),
+                "check": lambda data: self._check_btc_volatility(data, threshold=1.5),
                 "severity": "medium",
-                "description": "Средняя волатильность BTC > 2%",
+                "description": "BTC medium volatility > 1.5%",
                 "category": "crypto"
             },
             
@@ -243,29 +248,41 @@ class HistoricalPatternTracker:
             
             # ============ EARTHQUAKES ============
             "earthquake_moderate": {
-                "check": lambda data: self._check_earthquake(data, min_magnitude=4.5),
+                "check": lambda data: self._check_earthquake(data, min_magnitude=5.0),
                 "severity": "medium",
-                "description": "Earthquake M4.5+",
+                "description": "Earthquake M5.0+",
                 "category": "earthquake"
             },
             "earthquake_strong": {
-                "check": lambda data: self._check_earthquake(data, min_magnitude=5.5),
+                "check": lambda data: self._check_earthquake(data, min_magnitude=6.0),
                 "severity": "high",
-                "description": "Earthquake M5.5+",
+                "description": "Earthquake M6.0+",
                 "category": "earthquake"
             },
             "earthquake_major": {
-                "check": lambda data: self._check_earthquake(data, min_magnitude=6.5),
+                "check": lambda data: self._check_earthquake(data, min_magnitude=7.0),
                 "severity": "critical",
-                "description": "Earthquake M6.5+",
+                "description": "Earthquake M7.0+",
                 "category": "earthquake"
             },
             
             # ============ SPACE WEATHER ============
-            "solar_storm": {
-                "check": lambda data: self._check_solar_storm(data),
+            "solar_storm_moderate": {
+                "check": lambda data: self._check_solar_storm(data, min_kp=5),
+                "severity": "medium",
+                "description": "Solar storm Kp5+",
+                "category": "space_weather"
+            },
+            "solar_storm_strong": {
+                "check": lambda data: self._check_solar_storm(data, min_kp=7),
                 "severity": "high",
-                "description": "Solar storm detected",
+                "description": "Solar storm Kp7+",
+                "category": "space_weather"
+            },
+            "solar_storm_extreme": {
+                "check": lambda data: self._check_solar_storm(data, min_kp=9),
+                "severity": "critical",
+                "description": "Solar storm Kp9 (extreme)",
                 "category": "space_weather"
             },
             
@@ -276,7 +293,7 @@ class HistoricalPatternTracker:
                 "description": "Землетрясение > 5.5",
                 "category": "other"
             },
-            "earthquake_moderate": {
+            "earthquake_moderate_old": {
                 "check": lambda data: self._check_earthquake(data, min_magnitude=5.0),
                 "severity": "medium",
                 "description": "Землетрясение > 5.0",
@@ -345,11 +362,17 @@ class HistoricalPatternTracker:
         
         for event_type, definition in self._event_definitions.items():
             if definition["check"](sensor_data):
+                # Extract location for geographic events
+                location = None
+                if 'earthquake' in event_type and 'latitude' in sensor_data and 'longitude' in sensor_data:
+                    location = (sensor_data['latitude'], sensor_data['longitude'])
+                
                 event = Event(
                     timestamp=current_time,
                     event_type=event_type,
                     severity=definition["severity"],
-                    metadata={"description": definition["description"]}
+                    metadata={"description": definition["description"]},
+                    location=location
                 )
                 events.append(event)
                 logger.info(f"🎯 Event detected: {event_type} from {source}")
@@ -377,6 +400,12 @@ class HistoricalPatternTracker:
                     
                     # Update statistics
                     pattern.event_after_count += 1
+                    
+                    # Save location for geographic events (limit to 1000 most recent)
+                    if event.location:
+                        pattern.event_locations.append(event.location)
+                        if len(pattern.event_locations) > 1000:
+                            pattern.event_locations = pattern.event_locations[-1000:]
                     
                     # Update timing
                     if time_diff < pattern.min_time_to_event:
@@ -429,6 +458,11 @@ class HistoricalPatternTracker:
             if event_category == "other":
                 continue
             
+            # Skip earthquake_moderate (M5.0+) - too frequent, not meaningful
+            if event_type == "earthquake_moderate":
+                logger.debug(f"Skipping earthquake_moderate for {condition_key}")
+                continue
+            
             # Apply category filter if specified
             if category_filter and event_category != category_filter:
                 continue
@@ -437,11 +471,25 @@ class HistoricalPatternTracker:
             if pattern.condition_count >= min_observations:
                 # Only include if there's actual probability > 0
                 if pattern.actual_probability > 0:
+                    # Calculate time window width
+                    min_time_h = pattern.min_time_to_event / 3600 if pattern.min_time_to_event != float('inf') else None
+                    max_time_h = pattern.max_time_to_event / 3600 if pattern.max_time_to_event > 0 else None
+                    avg_time_h = pattern.avg_time_to_event / 3600
+                    
+                    # Filter by time window width for earthquakes
+                    # Only show if window < 12 hours (precise prediction)
+                    if 'earthquake' in event_type:
+                        if min_time_h is not None and max_time_h is not None:
+                            window_width = max_time_h - min_time_h
+                            if window_width >= 12.0:
+                                # Window too wide - not precise enough
+                                continue
+                    
                     results[event_type] = {
                         "probability": pattern.actual_probability,
-                        "avg_time_hours": pattern.avg_time_to_event / 3600,
-                        "min_time_hours": pattern.min_time_to_event / 3600 if pattern.min_time_to_event != float('inf') else None,
-                        "max_time_hours": pattern.max_time_to_event / 3600 if pattern.max_time_to_event > 0 else None,
+                        "avg_time_hours": avg_time_h,
+                        "min_time_hours": min_time_h,
+                        "max_time_hours": max_time_h,
                         "observations": pattern.condition_count,
                         "occurrences": pattern.event_after_count,
                         "description": self._event_definitions.get(event_type, {}).get("description", event_type),
@@ -558,6 +606,63 @@ class HistoricalPatternTracker:
             except Exception as e:
                 logger.error(f"Failed to load recent conditions: {e}")
     
+    def _load_price_history(self):
+        """Load recent price history from crypto logs for pump/dump detection."""
+        try:
+            import json
+            from pathlib import Path
+            
+            crypto_dir = Path("logs/crypto")
+            if not crypto_dir.exists():
+                return
+            
+            # Load last 3 days of data
+            current_time = time.time()
+            lookback = 72 * 3600  # 72 hours
+            cutoff = current_time - lookback
+            
+            # Read last 3 log files
+            for log_file in sorted(crypto_dir.glob("*.jsonl"), reverse=True)[:3]:
+                try:
+                    with open(log_file, 'r') as f:
+                        for line in f:
+                            try:
+                                data = json.loads(line.strip())
+                                timestamp = data.get('timestamp', 0)
+                                
+                                if timestamp < cutoff:
+                                    continue
+                                
+                                pairs = data.get('pairs', [])
+                                
+                                # Extract BTC price
+                                for p in pairs:
+                                    if p.get('symbol') == 'BTCUSDT':
+                                        price = p.get('price', 0)
+                                        if price > 0:
+                                            self._price_history['btc'].append({
+                                                "timestamp": timestamp,
+                                                "price": price
+                                            })
+                                    elif p.get('symbol') == 'ETHUSDT':
+                                        price = p.get('price', 0)
+                                        if price > 0:
+                                            self._price_history['eth'].append({
+                                                "timestamp": timestamp,
+                                                "price": price
+                                            })
+                            except json.JSONDecodeError:
+                                continue
+                except Exception as e:
+                    logger.debug(f"Error reading {log_file}: {e}")
+            
+            btc_count = len(self._price_history['btc'])
+            eth_count = len(self._price_history['eth'])
+            logger.info(f"Loaded price history: BTC={btc_count}, ETH={eth_count} data points")
+            
+        except Exception as e:
+            logger.error(f"Failed to load price history: {e}")
+    
     # Event check methods - REAL IMPLEMENTATIONS
     # Data comes directly from sensors, with 'source' field indicating sensor type
     
@@ -568,13 +673,11 @@ class HistoricalPatternTracker:
             if source != 'crypto':
                 return False
             
-            # Check pairs for BTCUSDT
-            pairs = data.get('pairs', {})
-            btc = pairs.get('BTCUSDT', {})
-            price_change = abs(btc.get('price_change_pct', 0))
+            # Check direct field (btcusdt.price_change_24h_percent)
+            price_change = abs(data.get('btcusdt.price_change_24h_percent', 0))
             
             if price_change >= threshold:
-                logger.debug(f"BTC volatility detected: {price_change:.2f}% >= {threshold}%")
+                logger.info(f"📊 BTC volatility detected: {price_change:.2f}% >= {threshold}%")
                 return True
             
             return False
@@ -753,8 +856,14 @@ class HistoricalPatternTracker:
             logger.debug(f"Error checking blockchain anomaly: {e}")
             return False
     
-    def _check_solar_storm(self, data: dict) -> bool:
-        """Check for solar storm activity."""
+    def _check_solar_storm(self, data: dict, min_kp: int = 5) -> bool:
+        """Check for solar storm activity.
+        
+        Kp index scale:
+        - Kp 5-6: Minor storm (moderate)
+        - Kp 7-8: Strong storm
+        - Kp 9: Extreme storm (rare!)
+        """
         try:
             source = data.get('source', '')
             if source != 'space_weather':
@@ -764,10 +873,14 @@ class HistoricalPatternTracker:
             kp_index = data.get('kp_index', 0)
             solar_wind_speed = data.get('solar_wind_speed', 0)
             
-            # Kp index > 5 = geomagnetic storm
-            # Solar wind > 600 km/s = high speed stream
-            if kp_index >= 5 or solar_wind_speed >= 600:
-                logger.info(f"☀️ Solar storm detected: Kp={kp_index}, wind={solar_wind_speed}km/s")
+            # Kp index threshold
+            if kp_index >= min_kp:
+                logger.info(f"☀️ Solar storm detected: Kp={kp_index} (threshold: {min_kp})")
+                return True
+            
+            # Alternative: very high solar wind speed
+            if min_kp <= 5 and solar_wind_speed >= 700:
+                logger.info(f"☀️ Solar storm detected: wind={solar_wind_speed}km/s")
                 return True
             
             return False

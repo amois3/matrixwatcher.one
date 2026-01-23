@@ -192,11 +192,16 @@ class SensorReading:
     
     def to_event(self, event_type: EventType = EventType.DATA) -> Event:
         """Convert sensor reading to an Event for the Event Bus."""
+        # Use to_dict() to include source in payload
+        payload_dict = self.to_dict()
+        # Remove timestamp as it's already in Event
+        payload_dict.pop('timestamp', None)
+        
         return Event(
             timestamp=self.timestamp,
             source=self.source,
             event_type=event_type,
-            payload=self.data,
+            payload=payload_dict,
             metadata=self.metadata
         )
 

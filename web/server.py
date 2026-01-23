@@ -75,72 +75,40 @@ def load_patterns() -> dict:
 
 
 def get_active_predictions() -> list:
-    """Get active predictions from patterns."""
-    predictions = []
-    patterns = load_patterns()
+    """Get active predictions from file (real-time sync with main.py).
     
-    # All public event categories (excluding "other")
-    public_events = {
-        # Crypto
-        "btc_pump_1h", "btc_dump_1h", "btc_pump_4h", "btc_dump_4h",
-        "btc_pump_24h", "btc_dump_24h", "eth_pump_1h", "eth_dump_1h",
-        "eth_pump_4h", "eth_dump_4h", "eth_pump_24h", "eth_dump_24h",
-        "btc_volatility_high", "btc_volatility_medium", "blockchain_anomaly",
-        # Earthquakes
-        "earthquake_moderate", "earthquake_strong", "earthquake_major",
-        # Space Weather
-        "solar_storm"
-    }
+    This ensures PWA shows EXACTLY the same data as Telegram.
+    File is updated by main.py whenever new predictions are generated.
+    """
+    predictions_file = Path("logs/predictions/current.json")
     
-    for condition_key, events in patterns.items():
-        for event_type, pattern in events.items():
-            if event_type not in public_events:
-                continue
-            
-            if pattern["condition_count"] >= 5 and pattern["actual_probability"] >= 0.4:
-                avg_hours = pattern["avg_time_to_event"] / 3600 if pattern["avg_time_to_event"] > 0 else 0
-                
-                # Icons and colors by event type
-                if "pump" in event_type:
-                    icon = "📈"
-                    color = "#00ff88"
-                elif "dump" in event_type:
-                    icon = "📉"
-                    color = "#ff4444"
-                elif "volatility" in event_type:
-                    icon = "⚡"
-                    color = "#ffaa00"
-                elif "blockchain" in event_type:
-                    icon = "⛓️"
-                    color = "#8888ff"
-                elif "earthquake" in event_type:
-                    icon = "🌍"
-                    color = "#ff9500"
-                elif "solar" in event_type:
-                    icon = "☀️"
-                    color = "#ffee00"
-                else:
-                    icon = "📊"
-                    color = "#8888ff"
-                
-                desc = event_type.replace("_", " ").upper()
-                
-                predictions.append({
-                    "id": f"{condition_key}_{event_type}",
-                    "condition": condition_key,
-                    "event": event_type,
-                    "description": desc,
-                    "probability": round(pattern["actual_probability"] * 100),
-                    "avg_time_hours": round(avg_hours, 1),
-                    "observations": pattern["condition_count"],
-                    "occurrences": pattern["event_after_count"],
-                    "icon": icon,
-                    "color": color,
-                    "timestamp": time.time()
-                })
+    if not predictions_file.exists():
+        return []
     
-    predictions.sort(key=lambda x: -x["probability"])
-    return predictions[:20]
+    try:
+        with open(predictions_file, 'r') as f:
+            data = json.load(f)
+        
+        predictions = data.get("predictions", [])
+        last_update = data.get("last_update", 0)
+        
+        # Filter out old predictions (older than 24 hours)
+        cutoff = time.time() - (24 * 3600)
+        active_predictions = [
+            p for p in predictions 
+            if p.get("timestamp", 0) > cutoff
+        ]
+        
+        # IMPORTANT: PWA shows ALL predictions (including 100%)
+        # Unlike Telegram which filters 40-95% only
+        # This is intentional - PWA is for monitoring, not notifications
+        
+        logger.debug(f"Loaded {len(active_predictions)} active predictions from file (last update: {last_update})")
+        return active_predictions
+        
+    except Exception as e:
+        logger.error(f"Error loading predictions from file: {e}")
+        return []
 
 
 def format_level_event(anomaly: dict):
@@ -186,14 +154,14 @@ def format_level_event(anomaly: dict):
     index_val = index_data.get("value", 0)
     deviation = round(index_val / 5, 1) if index_val > 0 else 1.0
     
-    # Format time
-    dt = datetime.fromtimestamp(timestamp)
-    today = datetime.now().date()
+    # Format time in UTC
+    dt = datetime.utcfromtimestamp(timestamp)
+    today = datetime.utcnow().date()
     if dt.date() == today:
-        time_str = dt.strftime("%H:%M")
+        time_str = dt.strftime("%H:%M UTC")
         date_str = "Today"
     else:
-        time_str = dt.strftime("%H:%M")
+        time_str = dt.strftime("%H:%M UTC")
         date_str = dt.strftime("%d %b")
     
     # System comment based on level
@@ -224,7 +192,12 @@ def format_level_event(anomaly: dict):
 
 @app.route('/')
 def index():
-    return send_from_directory('static', 'index.html')
+    response = send_from_directory('static', 'index.html')
+    # Disable cache for index.html to ensure users get latest version
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 
 @app.route('/robots.txt')
