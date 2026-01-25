@@ -64,8 +64,7 @@ All statistics are honest and verifiable. The system observes — it doesn't fab
 ## Contact
 
 **Creator:** Aleksejs Moisejevs
-
-For business inquiries: [GitHub Profile](https://github.com/amois3)
+**Email:** amoisejevs3@gmail.com
 
 ---
 
