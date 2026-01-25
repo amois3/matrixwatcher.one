@@ -1,1 +1,0 @@
-"""Matrix Watcher test suite."""

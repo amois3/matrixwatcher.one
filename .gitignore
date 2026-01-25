@@ -9,8 +9,6 @@ __pycache__/
 dist/
 build/
 *.egg
-
-# Virtual environments
 venv/
 .venv/
 env/
@@ -20,42 +18,90 @@ env/
 .vscode/
 *.swp
 *.swo
+.kiro/
 
-# Logs (keep structure, ignore data)
-logs/anomalies/*.jsonl
-logs/anomaly_index/*.jsonl
-logs/blockchain/*.jsonl
-logs/crypto/*.jsonl
-logs/earthquake/*.jsonl
-logs/news/*.jsonl
-logs/quantum_rng/*.jsonl
-logs/space_weather/*.jsonl
-logs/weather/*.jsonl
-logs/network/*.jsonl
-logs/random/*.jsonl
-logs/system/*.jsonl
-logs/time_drift/*.jsonl
-logs/calibration/*.jsonl
-logs/calibration/*.json
-logs/patterns/*.json
-logs/patterns_test/*.json
-!logs/*/.gitkeep
-
-# Backup data
-logs_backup_buggy_data/
-
-# Hypothesis test cache
-.hypothesis/
-
-# pytest
-.pytest_cache/
-
-# Local config with secrets
+# Config with secrets
+config.json
 config.local.json
+
+# Logs and data (not open source)
+logs/
+*.log
+*.jsonl
+
+# Binary files
+*.pkg
+*.tgz
+cloudflared
+
+# Personal notes and docs (Russian)
+*_RUSSIAN.md
+ORACLE_*.md
+CLOUDFLARE_*.md
+RAILWAY_*.md
+SEO_*.md
+SYSTEM_AUDIT*.md
+CRYPTO_*.md
+PWA_*.md
+SUMMARY.md
+UPGRADE_*.md
+ROADMAP_*.md
+PATTERN_TRACKER_*.md
+
+# Russian documentation
+АВТОКАЛИБРОВКА.md
+АУДИТ_*.md
+БОЕВОЕ_ДЕЖУРСТВО.md
+ВРЕМЯ_*.md
+ГРУППИРОВКА_*.md
+ДВЕ_КАЛИБРОВКИ*.md
+ДОБАВЛЕНО_*.md
+ИЗМЕНЕНИЕ_*.md
+ИСПРАВЛЕНИЕ_*.md
+КАК_*.md
+КАЛИБРОВКА_*.md
+ПОРОГИ_*.md
+ПРИМЕР_*.md
+ПРОВЕРКА_*.md
+СТАТУС_*.md
+УДАЛЕНИЕ_*.md
+ФИЛОСОФИЯ_*.md
+ФИНАЛЬНЫЙ_*.md
+ЧИСТКА_*.md
+ЧИТАЙ_*.md
+ЧТО_*.md
+МОИ_*.md
+НАЙДЕНА_*.md
+ПРОБЛЕМА_*.md
+ПЛАН_*.md
+
+# Helper scripts (local only)
+check_*.py
+setup_*.py
+*_auto_*.py
+verify_*.py
+update_*.py
+upload_*.py
+rebuild_*.py
+oracle_*.py
+
+# Local tools
+notes/
+.claude/
+
+# Deployment configs (local)
+railway.json
+Procfile
+
+# Test cache
+.hypothesis/
+.pytest_cache/
 
 # Mac
 .DS_Store
 
-# Log files
-*.log
-matrix_watcher.log
+# Web events data
+web/events/
+
+# Stable version tracking (local)
+src/stable_ver
