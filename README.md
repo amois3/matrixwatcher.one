@@ -1,140 +1,172 @@
-# Matrix Watcher v1.0
+# Matrix Watcher
 
-**Система поиска скрытых закономерностей и аномалий в цифровой реальности**
+**Real-time anomaly detection and correlation monitoring across multiple independent data streams.**
 
-Matrix Watcher — автономный программный комплекс, который собирает многослойные цифровые данные из разных независимых систем и анализирует их для обнаружения скрытых корреляций, аномалий и паттернов.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 
-## 🎯 Возможности
+> *We watch, we don't explain.*
 
-- **8 сенсоров данных**: система, время, сеть, рандом, крипта, блокчейн, погода, новости
-- **Онлайн-анализ**: обнаружение аномалий в реальном времени (z-score)
-- **Оффлайн-анализ**: 
-  - Корреляционная матрица
-  - Lag-корреляции (поиск причинно-следственных связей)
-  - Кластеризация аномалий
-  - Поиск предвестников
-  - FFT-анализ периодичности
-- **Alerting**: уведомления в Telegram/Discord/Slack
-- **CLI**: удобные команды для анализа
+## Overview
 
-## 🚀 Быстрый старт
+Matrix Watcher is an autonomous system that monitors multiple independent data sources in real-time, detecting anomalies and searching for correlations that emerge from chaos. The system observes patterns without attempting to explain them - letting the data speak for itself.
+
+### Live Demo
+**[matrixwatcher.space](https://matrixwatcher.space)**
+
+## Data Sources
+
+The system continuously monitors 7 independent sensors:
+
+| Sensor | Description | Update Interval |
+|--------|-------------|-----------------|
+| **Crypto** | BTC/ETH price movements, volatility | 2 seconds |
+| **Blockchain** | Network metrics, block times | 10 seconds |
+| **Quantum RNG** | True randomness from quantum fluctuations (ANU) | 5 minutes |
+| **Space Weather** | Solar activity, geomagnetic storms | 5 minutes |
+| **Seismic** | Global earthquake activity (USGS) | 1 minute |
+| **Weather** | Atmospheric pressure, temperature | 5 minutes |
+| **News** | Global event streams (RSS feeds) | 5 minutes |
+
+## How It Works
+
+### Anomaly Detection
+Each sensor independently detects anomalies using percentage-change thresholds. When a value deviates significantly from recent history, it's flagged as an anomaly.
+
+### Cluster Detection
+When anomalies from multiple independent sources occur within a 30-second window, they form a "cluster". Clusters are rated by level:
+
+- **Level 1-2**: Single source anomalies (not displayed)
+- **Level 3**: 3 independent sources correlating
+- **Level 4**: 4 independent sources correlating
+- **Level 5**: 5+ sources - critical anomaly state
+
+### Pattern Learning
+The system tracks historical patterns: when condition X occurs, what events follow? Over time, it builds a statistical model of correlations.
+
+### Predictions
+Based on learned patterns, the system generates predictions. All statistics shown are **honest and verifiable** - the system never inflates numbers.
+
+## Installation
 
 ```bash
-# Установка зависимостей
+# Clone the repository
+git clone https://github.com/amois3/matrix_watcher.git
+cd matrix_watcher
+
+# Create virtual environment
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
 pip install -r requirements.txt
 
-# Запуск системы
-python main.py
-
-# Анализ данных
-python analyze.py correlations
-python analyze.py lag
-python analyze.py clusters
+# Copy and configure
+cp config.example.json config.json
+# Edit config.json with your API keys
 ```
 
-## 📁 Структура проекта
+## Configuration
+
+Edit `config.json` to configure:
+
+- **Sensors**: Enable/disable individual sensors, set intervals
+- **API Keys**: Add your keys for weather, Telegram alerts, etc.
+- **Analysis**: Tune detection thresholds
+- **Alerting**: Configure Telegram notifications
+
+### API Keys
+
+| Service | Required | Get it from |
+|---------|----------|-------------|
+| OpenWeatherMap | Optional | [openweathermap.org](https://openweathermap.org/api) |
+| Telegram Bot | Optional | [@BotFather](https://t.me/botfather) |
+
+Most sensors work without API keys (crypto, blockchain, earthquake, space weather, news).
+
+## Usage
+
+### Quick Start
+
+```bash
+# Start all services in background
+./start_all.sh
+
+# Check status
+./status.sh
+
+# Stop all services
+./stop_all.sh
+```
+
+### Manual Start
+
+```bash
+# Start the main sensor system
+python3 main.py
+
+# In another terminal, start the web interface
+python3 run_pwa.py
+```
+
+### View Logs
+
+```bash
+tail -f logs/main.log      # Sensor activity
+tail -f logs/watchdog.log  # PWA health
+```
+
+## Web Interface
+
+The PWA is accessible at `http://localhost:5555` after starting.
+
+Features:
+- Real-time anomaly cluster display (Level 3+)
+- Active predictions with honest statistics
+- Mobile-friendly responsive design
+- Works offline (PWA)
+
+## Architecture
 
 ```
-matrix-watcher/
-├── main.py                 # Точка входа
-├── analyze.py              # CLI для оффлайн-анализа
-├── config.json             # Конфигурация
+matrix_watcher/
+├── main.py                 # Main entry point
+├── run_pwa.py             # Web server launcher
+├── pwa_watchdog.py        # Auto-restart on failure
 ├── src/
-│   ├── config/             # Управление конфигурацией
-│   ├── core/               # Event Bus, Scheduler, Types
-│   ├── sensors/            # Сенсоры данных
-│   ├── storage/            # JSONL, Parquet хранилище
-│   ├── analyzers/          # Онлайн и оффлайн анализаторы
-│   ├── monitoring/         # Health Monitor, Alerting
-│   └── utils/              # Статистика, утилиты
-├── logs/                   # Данные сенсоров
-└── tests/                  # Тесты
+│   ├── sensors/           # Data source implementations
+│   ├── analyzers/         # Anomaly & pattern detection
+│   └── storage/           # Data persistence
+├── web/
+│   ├── api.py            # FastAPI backend
+│   └── static/           # PWA frontend
+└── logs/                  # Data storage
 ```
 
-## ⚙️ Конфигурация
+## Philosophy
 
-Отредактируйте `config.json` для настройки:
-- Включение/выключение сенсоров
-- Интервалы опроса
-- API ключи (OpenWeatherMap, Etherscan, random.org)
-- Пороги аномалий
-- Webhook для уведомлений
+Matrix Watcher is built on principles of **honesty and transparency**:
 
-## 📊 Сенсоры
+1. **No fake statistics** - All numbers are real and verifiable
+2. **No explanations** - We observe correlations, not causation
+3. **Open data** - All patterns and predictions come from actual observations
+4. **Reproducible** - Same data in = same results out
 
-| Сенсор | Интервал | Данные |
-|--------|----------|--------|
-| System | 1 сек | CPU, RAM, температура, uptime |
-| Time Drift | 2 сек | Дрейф времени (NTP, API) |
-| Network | 5 сек | Латентность к google, binance, cloudflare |
-| Random | 5 сек | Статистика случайности (chi-square, p-value) |
-| Crypto | 2 сек | Цены BTC/ETH, спред, объём |
-| Blockchain | 10 сек | Высота блока, интервал, gas |
-| Weather | 5 мин | Температура, давление, влажность |
-| News | 15 мин | Заголовки, энтропия текста |
+## Contributing
 
-## 🔍 Анализ
+Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-```bash
-# Корреляционная матрица
-python analyze.py correlations --start-date 2024-01-01 --output report.png
+## License
 
-# Lag-корреляции (поиск причинно-следственных связей)
-python analyze.py lag --start-date 2024-01-01
+MIT License - see [LICENSE](LICENSE) for details.
 
-# Кластеры аномалий
-python analyze.py clusters
+## Acknowledgments
 
-# Временная шкала событий
-python analyze.py timeline --start-date 2024-01-01 --end-date 2024-01-31
-```
+- [ANU Quantum Random Numbers](https://qrng.anu.edu.au/) - True quantum randomness
+- [USGS Earthquake API](https://earthquake.usgs.gov/) - Seismic data
+- [NOAA Space Weather](https://www.swpc.noaa.gov/) - Solar activity data
+- [Binance API](https://binance.com/) - Cryptocurrency data
 
-## 🧪 Тестирование
+---
 
-```bash
-# Запуск всех тестов
-pytest
-
-# Только property-based тесты
-pytest -m property
-
-# С покрытием
-pytest --cov=src
-```
-
-## 📚 Документация
-
-### Основная документация
-- **[ФИЛОСОФИЯ_СИСТЕМЫ.md](ФИЛОСОФИЯ_СИСТЕМЫ.md)** - Философия "наблюдаем, не объясняем"
-- **[ПОРОГИ_СИСТЕМЫ.md](ПОРОГИ_СИСТЕМЫ.md)** - Основные пороги и их обоснование
-- **[ЧТО_СДЕЛАНО.md](ЧТО_СДЕЛАНО.md)** - История разработки
-
-### Калибровка и аудит
-- **[SUMMARY.md](SUMMARY.md)** - Краткая сводка по аудиту системы
-- **[АУДИТ_ЗАВЕРШЁН.md](АУДИТ_ЗАВЕРШЁН.md)** - Полный отчёт о завершении аудита
-- **[АУДИТ_ПОРОГОВ.md](АУДИТ_ПОРОГОВ.md)** - Детальный аудит всех 47 порогов
-- **[КАК_КАЛИБРОВАТЬ.md](КАК_КАЛИБРОВАТЬ.md)** - Практическое руководство по калибровке
-- **[КАЛИБРОВКА_ВЕРОЯТНОСТЕЙ.md](КАЛИБРОВКА_ВЕРОЯТНОСТЕЙ.md)** - Философия калибровки
-
-### Специальные возможности
-- **[PATTERN_TRACKER_ГОТОВ.md](PATTERN_TRACKER_ГОТОВ.md)** - Трекер исторических паттернов
-- **[UPGRADE_INSTRUCTIONS.md](UPGRADE_INSTRUCTIONS.md)** - Инструкции по обновлению
-
-## 🤖 Автокалибровка системы
-
-Система **автоматически** калибрует пороги на основе накопленных данных!
-
-**Режим:** Полностью автономный (auto-apply enabled)  
-**Частота:** Раз в день  
-**Первая калибровка:** Через 30 дней после запуска  
-
-Проверка статуса:
-```bash
-curl http://localhost:8080/health | jq .calibration
-```
-
-Подробнее: **[АВТОКАЛИБРОВКА.md](АВТОКАЛИБРОВКА.md)** | **[БОЕВОЕ_ДЕЖУРСТВО.md](БОЕВОЕ_ДЕЖУРСТВО.md)**
-
-## 📜 Лицензия
-
-MIT
+**Disclaimer**: This project is for educational and research purposes. Predictions are statistical observations, not financial advice. Past correlations do not guarantee future results.
