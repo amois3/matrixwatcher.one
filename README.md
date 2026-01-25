@@ -75,4 +75,4 @@ MIT License — see [LICENSE](LICENSE)
 
 ---
 
-*Matrix Watcher — Observing correlations in chaos since 2026*
+*Matrix Watcher — Observing correlations in chaos since 2025*
