@@ -18,13 +18,12 @@ env/
 .vscode/
 *.swp
 *.swo
-.kiro/
 
-# Config with secrets
+# Config (contains API keys)
 config.json
 config.local.json
 
-# Logs and data (not open source)
+# Logs and runtime data
 logs/
 *.log
 *.jsonl
@@ -32,66 +31,10 @@ logs/
 # Binary files
 *.pkg
 *.tgz
-cloudflared
 
-# Personal notes and docs (Russian)
-*_RUSSIAN.md
-ORACLE_*.md
-CLOUDFLARE_*.md
-RAILWAY_*.md
-SEO_*.md
-SYSTEM_AUDIT*.md
-CRYPTO_*.md
-PWA_*.md
-SUMMARY.md
-UPGRADE_*.md
-ROADMAP_*.md
-PATTERN_TRACKER_*.md
-
-# Russian documentation
-АВТОКАЛИБРОВКА.md
-АУДИТ_*.md
-БОЕВОЕ_ДЕЖУРСТВО.md
-ВРЕМЯ_*.md
-ГРУППИРОВКА_*.md
-ДВЕ_КАЛИБРОВКИ*.md
-ДОБАВЛЕНО_*.md
-ИЗМЕНЕНИЕ_*.md
-ИСПРАВЛЕНИЕ_*.md
-КАК_*.md
-КАЛИБРОВКА_*.md
-ПОРОГИ_*.md
-ПРИМЕР_*.md
-ПРОВЕРКА_*.md
-СТАТУС_*.md
-УДАЛЕНИЕ_*.md
-ФИЛОСОФИЯ_*.md
-ФИНАЛЬНЫЙ_*.md
-ЧИСТКА_*.md
-ЧИТАЙ_*.md
-ЧТО_*.md
-МОИ_*.md
-НАЙДЕНА_*.md
-ПРОБЛЕМА_*.md
-ПЛАН_*.md
-
-# Helper scripts (local only)
-check_*.py
-setup_*.py
-*_auto_*.py
-verify_*.py
-update_*.py
-upload_*.py
-rebuild_*.py
-oracle_*.py
-
-# Local tools
+# Local notes and docs
+*.local.md
 notes/
-.claude/
-
-# Deployment configs (local)
-railway.json
-Procfile
 
 # Test cache
 .hypothesis/
@@ -99,9 +42,3 @@ Procfile
 
 # Mac
 .DS_Store
-
-# Web events data
-web/events/
-
-# Stable version tracking (local)
-src/stable_ver
