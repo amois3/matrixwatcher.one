@@ -94,7 +94,7 @@ class MatrixWatcher:
         self.pattern_tracker = HistoricalPatternTracker(storage_path="logs/patterns")
         
         # Auto-calibrator for automatic threshold optimization
-        # auto_apply=True: система сама применяет изменения с high confidence и уведомляет
+        # auto_apply=True: system auto-applies changes with high confidence and notifies
         self.auto_calibrator = get_auto_calibrator(auto_apply=True)
         
         self.health_monitor = HealthMonitor(
@@ -135,8 +135,8 @@ class MatrixWatcher:
         if self._loop and self.telegram:
             asyncio.run_coroutine_threadsafe(
                 self.telegram.send_message(
-                    f"⚠️ <b>Сенсор отключён</b>\n\n"
-                    f"Сенсор <b>{sensor_name}</b> отключён из-за повторяющихся ошибок.",
+                    f"⚠️ <b>Sensor Disabled</b>\n\n"
+                    f"Sensor <b>{sensor_name}</b> disabled due to repeated errors.",
                     message_key=f"sensor_disabled:{sensor_name}"
                 ),
                 self._loop
@@ -377,57 +377,57 @@ class MatrixWatcher:
             recommendations = results["recommendations"]
             auto_applied = results.get("auto_applied", [])
             
-            msg = "🔬 <b>Автокалибровка завершена</b>\n\n"
+            msg = "🔬 <b>Auto-calibration Complete</b>\n\n"
             msg += f"{results['summary']}\n\n"
-            
+
             # Show auto-applied changes first
             if auto_applied:
-                msg += "✅ <b>Автоматически применено:</b>\n"
-                
+                msg += "✅ <b>Auto-applied:</b>\n"
+
                 for rec in recommendations:
                     if rec["threshold_name"] in auto_applied:
                         name = rec["threshold_name"].replace(".", " › ")
                         current = rec["current_value"]
                         recommended = rec["recommended_value"]
                         change = rec["change_percent"]
-                        
+
                         msg += f"\n🟢 <code>{name}</code>\n"
-                        msg += f"  Было: {current:.4f}\n"
-                        msg += f"  Стало: {recommended:.4f} ({change:+.1f}%)\n"
-                        msg += f"  Причина: {rec['reason']}\n"
-                        msg += f"  Уверенность: HIGH ✓\n"
-                
+                        msg += f"  Was: {current:.4f}\n"
+                        msg += f"  Now: {recommended:.4f} ({change:+.1f}%)\n"
+                        msg += f"  Reason: {rec['reason']}\n"
+                        msg += f"  Confidence: HIGH ✓\n"
+
                 msg += "\n"
-            
+
             # Show recommendations that need manual review
             manual_recs = [r for r in recommendations if r["threshold_name"] not in auto_applied]
-            
+
             if manual_recs:
-                msg += "💡 <b>Требуют проверки:</b>\n"
-                
+                msg += "💡 <b>Needs Review:</b>\n"
+
                 for rec in manual_recs[:5]:  # Top 5
                     name = rec["threshold_name"].replace(".", " › ")
                     current = rec["current_value"]
                     recommended = rec["recommended_value"]
                     change = rec["change_percent"]
                     confidence = rec["confidence"]
-                    
+
                     emoji = "🟡" if confidence == "medium" else "🔴"
-                    
+
                     msg += f"\n{emoji} <code>{name}</code>\n"
-                    msg += f"  Текущий: {current:.4f}\n"
-                    msg += f"  Рекомендуемый: {recommended:.4f} ({change:+.1f}%)\n"
-                    msg += f"  Причина: {rec['reason']}\n"
-                    msg += f"  Уверенность: {confidence.upper()}\n"
-                
+                    msg += f"  Current: {current:.4f}\n"
+                    msg += f"  Recommended: {recommended:.4f} ({change:+.1f}%)\n"
+                    msg += f"  Reason: {rec['reason']}\n"
+                    msg += f"  Confidence: {confidence.upper()}\n"
+
                 if len(manual_recs) > 5:
-                    msg += f"\n... и ещё {len(manual_recs) - 5} рекомендаций\n"
-            
-            msg += "\n📊 Полный отчёт: <code>logs/calibration/calibration_report_*.json</code>"
-            
+                    msg += f"\n... and {len(manual_recs) - 5} more recommendations\n"
+
+            msg += "\n📊 Full report: <code>logs/calibration/calibration_report_*.json</code>"
+
             # Add restart note if changes were applied
             if auto_applied:
-                msg += "\n\n⚠️ <b>Примечание:</b> Изменения вступят в силу после перезапуска системы."
+                msg += "\n\n⚠️ <b>Note:</b> Changes will take effect after system restart."
             
             await self.telegram.send_message(msg, message_key="calibration_completed")
             
@@ -476,13 +476,13 @@ class MatrixWatcher:
             unique_sources = list(dict.fromkeys(condition.sources))
             sources_str = ", ".join(unique_sources)
             
-            msg = "🔮 КРИПТО-ПРЕДСКАЗАНИЕ\n"
+            msg = "🔮 CRYPTO PREDICTION\n"
             msg += f"🕒 {timestamp.strftime('%d %b · %H:%M')}\n\n"
-            
-            msg += f"Условие: Level {condition.level} ({sources_str})\n"
+
+            msg += f"Condition: Level {condition.level} ({sources_str})\n"
             msg += f"Anomaly Index: {condition.anomaly_index:.1f}\n\n"
-            
-            msg += "Вероятные события:\n"
+
+            msg += "Probable events:\n"
             
             # Sort by probability, then by time
             sorted_preds = sorted(significant.items(), key=lambda x: (-x[1]['probability'], x[1]['avg_time_hours']))
@@ -508,17 +508,17 @@ class MatrixWatcher:
                     emoji = "📊"
                 
                 msg += f"\n{emoji} {desc}\n"
-                msg += f"   Вероятность: {prob:.0f}%\n"
-                
+                msg += f"   Probability: {prob:.0f}%\n"
+
                 # Show time range if available
                 if min_time and max_time and min_time != max_time:
-                    msg += f"   Когда: {self._format_time_range(min_time, max_time, avg_time)}\n"
+                    msg += f"   When: {self._format_time_range(min_time, max_time, avg_time)}\n"
                 else:
-                    msg += f"   Ожидаемое время: {self._format_time(avg_time)}\n"
-                
-                msg += f"   Наблюдений: {obs}\n"
-            
-            msg += "\nНаблюдаем, не объясняем."
+                    msg += f"   Expected time: {self._format_time(avg_time)}\n"
+
+                msg += f"   Observations: {obs}\n"
+
+            msg += "\nWe observe. We don't explain."
             
             # Use cooldown to avoid spam
             message_key = f"crypto_prediction:{condition.to_key()}"
@@ -548,21 +548,21 @@ class MatrixWatcher:
     def _format_time(self, hours: float) -> str:
         """Format time in human-readable format."""
         if hours < 1:
-            return f"~{int(hours * 60)} мин"
+            return f"~{int(hours * 60)} min"
         elif hours < 24:
-            return f"~{hours:.1f}ч"
+            return f"~{hours:.1f}h"
         else:
             days = hours / 24
-            return f"~{days:.1f} дн"
-    
+            return f"~{days:.1f}d"
+
     def _format_time_range(self, min_h: float, max_h: float, avg_h: float) -> str:
         """Format time range in human-readable format."""
         if max_h < 1:
-            return f"{int(min_h * 60)}-{int(max_h * 60)} мин (обычно ~{int(avg_h * 60)} мин)"
+            return f"{int(min_h * 60)}-{int(max_h * 60)} min (avg ~{int(avg_h * 60)} min)"
         elif max_h < 24:
-            return f"{min_h:.1f}-{max_h:.1f}ч (обычно ~{avg_h:.1f}ч)"
+            return f"{min_h:.1f}-{max_h:.1f}h (avg ~{avg_h:.1f}h)"
         else:
-            return f"{min_h/24:.1f}-{max_h/24:.1f} дн (обычно ~{avg_h/24:.1f} дн)"
+            return f"{min_h/24:.1f}-{max_h/24:.1f}d (avg ~{avg_h/24:.1f}d)"
     
     def _log_anomaly_index(self):
         """Log current Anomaly Index periodically."""
