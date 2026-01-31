@@ -52,6 +52,26 @@ All statistics are honest and verifiable. The system observes — it doesn't fab
 
 ---
 
+## No AI. Pure Statistics.
+
+Matrix Watcher intentionally does **not** use artificial intelligence, neural networks, or language models.
+
+All predictions are based on **pure statistical observation**:
+- Pattern counting: `probability = occurrences / observations`
+- Brier score calibration for scientific accuracy validation
+- Historical correlation tracking
+
+The system learns by accumulating data and adjusting probabilities based on actual outcomes — not by AI interpretation or speculation.
+
+**Why no AI?**
+- AI can hallucinate. Statistics cannot.
+- AI explains. We observe.
+- AI predicts what it thinks you want. We show what the data shows.
+
+This is a deliberate philosophical choice. We believe in the scientific method: observe, measure, report. Nothing more.
+
+---
+
 ## Technology
 
 - Python 3.11+
@@ -65,6 +85,17 @@ All statistics are honest and verifiable. The system observes — it doesn't fab
 
 **Creator:** Aleksejs Moisejevs
 **Email:** amoisejevs3@gmail.com
+
+---
+
+## Recent Updates
+
+### January 2026
+- **Earthquake Region Detection** — System identifies geographic regions (Iceland, Japan, Philippines, etc.) for seismic predictions
+- **Honest Predictions** — Minimum 30-minute lead time filter; no "predictions" for events already happening
+- **Direction Indicators** — Bearish/Bullish tendency display for crypto predictions
+- **Interactive Tooltips** — Hover explanations for all technical terms
+- **Real-time Updates** — "Time ago" indicators showing prediction freshness
 
 ---
 
