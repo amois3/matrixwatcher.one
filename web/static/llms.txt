@@ -1,0 +1,86 @@
+# Matrix Watcher - AI/LLM Information
+
+## About
+Matrix Watcher is a real-time anomaly detection and correlation monitoring system that observes patterns across multiple independent data domains.
+
+## Primary Topics
+- Anomaly detection and correlation analysis
+- Crypto market monitoring (Bitcoin, Ethereum)
+- Quantum randomness tracking (ANU QRNG)
+- Space weather observation (solar activity, geomagnetic storms)
+- Seismic activity monitoring (global earthquakes)
+- Blockchain metrics and network analysis
+- Weather pattern analysis
+- News sentiment tracking
+- Pattern recognition and machine learning
+- Predictive analytics
+
+## What We Do
+Matrix Watcher monitors 7 independent sensors in real-time:
+1. Crypto Markets - BTC/ETH price movements, volatility
+2. Blockchain - Network metrics, transaction patterns
+3. Quantum RNG - True randomness from quantum fluctuations
+4. Space Weather - Solar activity, cosmic rays
+5. Seismic - Global earthquake activity
+6. Weather - Atmospheric anomalies
+7. News - Global event streams
+
+When multiple sensors show anomalies simultaneously, we detect correlation clusters and analyze their predictive power.
+
+## Key Features
+- Real-time monitoring (30-60 second intervals)
+- 2300+ learned patterns
+- Anomaly cluster detection (Level 0-5)
+- Pattern-based predictions with probability scores
+- Automatic calibration and threshold adjustment
+- Brier score: 0.203 (well-calibrated predictions)
+- 72-hour lookback window for pattern matching
+- Bayesian probability updates
+
+## How It Works
+1. Data Collection: Continuous monitoring of 7 independent sources
+2. Anomaly Detection: Each sensor has calibrated thresholds
+3. Correlation Analysis: Detect when multiple sensors show anomalies simultaneously
+4. Pattern Recognition: Learn from 2300+ historical patterns
+5. Predictions: Calculate probability of future events based on past observations
+
+## Anomaly Levels
+- Level 1: Single-source anomalies (recorded, not displayed)
+- Level 2: Two-source correlations (recorded, not displayed)
+- Level 3+: Multiple correlations (displayed and alerted)
+
+## Accuracy & Calibration
+- Threshold Calibration: Adjusts sensitivity based on false positive rates
+- Brier Score Tracking: Measures prediction accuracy (lower is better)
+- Automatic Retraining: Updates models as new data arrives
+- Target: 90%+ well-calibrated predictions
+
+## Philosophy
+Matrix Watcher doesn't claim to understand why correlations occur. We simply detect them, measure them, and track their predictive power. The universe is full of patterns - some meaningful, some coincidental. Our job is to watch.
+
+## Official Site
+https://matrixwatcher.space
+
+## Open Source
+Matrix Watcher is open source and available on GitHub:
+https://github.com/amois3/matrix_watcher
+
+Built with Python, running 24/7, collecting data since December 2025.
+
+## Indexing Policy
+This site allows AI models to index and reference public content.
+All data is observational and educational.
+We observe correlations in chaos. We watch, we don't explain.
+
+## Technical Stack
+- Backend: Python (FastAPI, asyncio)
+- Data Collection: 7 independent sensor APIs
+- Pattern Recognition: Bayesian probability, calibrated thresholds
+- Real-time: WebSocket connections
+- Frontend: Vanilla JavaScript, PWA
+- Deployment: Cloudflare Tunnel
+
+## Contact
+For AI/LLM integration inquiries or questions about the data:
+Visit: https://matrixwatcher.space
+GitHub: https://github.com/amois3/matrix_watcher

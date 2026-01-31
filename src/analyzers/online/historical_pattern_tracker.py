@@ -39,11 +39,54 @@ class Condition:
     sources: list[str]  # Which sensors involved
     anomaly_index: float  # 0-100
     baseline_ratio: float  # How much above baseline
-    
+
+    # Temporal features (auto-calculated from timestamp)
+    hour_of_day: int = -1  # 0-23 UTC
+    day_of_week: int = -1  # 0=Monday, 6=Sunday
+    is_weekend: bool = False
+    month: int = -1  # 1-12
+
+    def __post_init__(self):
+        """Auto-calculate temporal features from timestamp."""
+        if self.hour_of_day == -1:  # Not manually set
+            from datetime import datetime, timezone
+            dt = datetime.fromtimestamp(self.timestamp, tz=timezone.utc)
+            self.hour_of_day = dt.hour
+            self.day_of_week = dt.weekday()  # 0=Monday, 6=Sunday
+            self.is_weekend = self.day_of_week >= 5
+            self.month = dt.month
+
     def to_key(self) -> str:
-        """Generate unique key for this condition type."""
+        """Generate unique key for this condition type (base pattern)."""
         sources_key = "_".join(sorted(self.sources))
         return f"L{self.level}_{sources_key}"
+
+    def to_temporal_key(self) -> str:
+        """Generate key including temporal features for more specific patterns."""
+        base = self.to_key()
+        # Time of day buckets: night(0-6), morning(6-12), afternoon(12-18), evening(18-24)
+        if self.hour_of_day < 6:
+            time_bucket = "night"
+        elif self.hour_of_day < 12:
+            time_bucket = "morning"
+        elif self.hour_of_day < 18:
+            time_bucket = "afternoon"
+        else:
+            time_bucket = "evening"
+
+        weekend_str = "weekend" if self.is_weekend else "weekday"
+        return f"{base}_{time_bucket}_{weekend_str}"
+
+    def get_time_bucket(self) -> str:
+        """Get human-readable time bucket."""
+        if self.hour_of_day < 6:
+            return "night (00-06 UTC)"
+        elif self.hour_of_day < 12:
+            return "morning (06-12 UTC)"
+        elif self.hour_of_day < 18:
+            return "afternoon (12-18 UTC)"
+        else:
+            return "evening (18-24 UTC)"
 
 
 @dataclass
@@ -100,6 +143,66 @@ class Pattern:
         if self.condition_count > 0:
             # Brier score = mean squared error of probability predictions
             self.brier_score = (self.predicted_probability - self.actual_probability) ** 2
+
+
+def get_region_from_coords(lat: float, lon: float) -> str:
+    """Determine geographic region from coordinates."""
+    # Iceland (very active volcanic region)
+    if lat > 63 and lat < 67 and lon > -25 and lon < -13:
+        return "Iceland"
+    # South Sandwich Islands (very seismically active)
+    elif lat > -61 and lat < -54 and lon > -30 and lon < -24:
+        return "South Atlantic"
+    # Alaska
+    elif lat > 50 and lon < -130:
+        return "Alaska"
+    # Japan
+    elif lat > 30 and lat < 50 and lon > 125 and lon < 150:
+        return "Japan"
+    # Philippines
+    elif lat > 4 and lat < 20 and lon > 118 and lon < 128:
+        return "Philippines"
+    # Indonesia
+    elif lat > -15 and lat < 10 and lon > 90 and lon < 145:
+        return "Indonesia"
+    # Pacific Islands
+    elif lat < -10 and lat > -60 and lon > 160:
+        return "Pacific Islands"
+    # Chile
+    elif lat < -10 and lat > -45 and lon < -60 and lon > -85:
+        return "Chile"
+    # California
+    elif lat > 30 and lat < 45 and lon > -130 and lon < -110:
+        return "California"
+    # Turkey/Greece
+    elif lat > 32 and lat < 42 and lon > 25 and lon < 45:
+        return "Turkey/Greece"
+    # Taiwan
+    elif lat > 20 and lat < 28 and lon > 119 and lon < 123:
+        return "Taiwan"
+    # Antarctic
+    elif lat < -60:
+        return "Antarctic"
+    else:
+        return "Global"
+
+
+def get_most_frequent_region(locations: list[tuple[float, float]]) -> str | None:
+    """Get most frequent region from list of coordinates."""
+    if not locations or len(locations) < 3:
+        return None
+
+    from collections import Counter
+    regions = [get_region_from_coords(lat, lon) for lat, lon in locations[-100:]]  # Last 100
+    region_counts = Counter(regions)
+
+    most_common = region_counts.most_common(1)
+    if most_common:
+        region, count = most_common[0]
+        # Only return if region appears in >30% of events
+        if count / len(regions) >= 0.3 and region != "Global":
+            return region
+    return None
 
 
 class HistoricalPatternTracker:
@@ -329,7 +432,7 @@ class HistoricalPatternTracker:
     
     def record_condition(self, condition: Condition):
         """Record a new condition (cluster detected).
-        
+
         Args:
             condition: The condition to record
         """
@@ -339,23 +442,31 @@ class HistoricalPatternTracker:
             "timestamp": condition.timestamp,
             "matched_events": []  # Will be filled when events occur
         })
-        
-        # Update condition count for this pattern type
+
+        # Update condition count for BOTH base and temporal patterns
         condition_key = condition.to_key()
+        temporal_key = condition.to_temporal_key()
+
         for event_type in self._event_definitions.keys():
-            # Check if pattern exists for this condition+event combination
+            # Base pattern (always tracked)
             if event_type not in self._patterns[condition_key]:
                 self._patterns[condition_key][event_type] = Pattern(
                     condition_key=condition_key,
                     event_type=event_type
                 )
-            
-            # Increment condition count
             self._patterns[condition_key][event_type].condition_count += 1
-            # Recalculate probability (fixes drift bug when conditions happen without events)
             self._patterns[condition_key][event_type].update_probability()
 
-        logger.debug(f"Recorded condition: {condition_key}, total patterns: {len(self._patterns)}")
+            # Temporal pattern (more specific)
+            if event_type not in self._patterns[temporal_key]:
+                self._patterns[temporal_key][event_type] = Pattern(
+                    condition_key=temporal_key,
+                    event_type=event_type
+                )
+            self._patterns[temporal_key][event_type].condition_count += 1
+            self._patterns[temporal_key][event_type].update_probability()
+
+        logger.debug(f"Recorded condition: {condition_key} + {temporal_key}")
     
     def check_events(self, sensor_data: dict[str, Any]) -> list[Event]:
         """Check if any tracked events occurred.
@@ -410,84 +521,102 @@ class HistoricalPatternTracker:
             # Only match if event happened after condition (within window)
             if 0 < time_diff < lookback_window:
                 condition_key = condition.to_key()
+                temporal_key = condition.to_temporal_key()
 
                 # HONEST: Skip if this condition was already matched with this event type
                 # Each condition counts only ONCE per event type
                 if event.event_type in item.get("matched_events", []):
                     continue
 
-                if event.event_type in self._patterns[condition_key]:
-                    pattern = self._patterns[condition_key][event.event_type]
+                # Update BOTH base and temporal patterns
+                for pattern_key in [condition_key, temporal_key]:
+                    if event.event_type in self._patterns[pattern_key]:
+                        pattern = self._patterns[pattern_key][event.event_type]
 
-                    # Update statistics (only counts unique condition matches)
-                    pattern.event_after_count += 1
-                    
-                    # Save location for geographic events (limit to 1000 most recent)
-                    if event.location:
-                        pattern.event_locations.append(event.location)
-                        if len(pattern.event_locations) > 1000:
-                            pattern.event_locations = pattern.event_locations[-1000:]
-                    
-                    # Update timing
-                    if time_diff < pattern.min_time_to_event:
-                        pattern.min_time_to_event = time_diff
-                    if time_diff > pattern.max_time_to_event:
-                        pattern.max_time_to_event = time_diff
-                    
-                    # Update average time
-                    n = pattern.event_after_count
-                    pattern.avg_time_to_event = (
-                        (pattern.avg_time_to_event * (n - 1) + time_diff) / n
-                    )
-                    
-                    # Update probabilities
-                    pattern.update_probability()
-                    
-                    # Mark as matched
-                    item["matched_events"].append(event.event_type)
-                    
-                    logger.debug(
-                        f"Pattern matched: {condition_key} → {event.event_type} "
-                        f"(probability: {pattern.actual_probability:.1%}, "
-                        f"avg time: {pattern.avg_time_to_event/3600:.1f}h)"
-                    )
+                        # Update statistics (only counts unique condition matches)
+                        pattern.event_after_count += 1
+
+                        # Save location for geographic events (limit to 1000 most recent)
+                        if event.location:
+                            pattern.event_locations.append(event.location)
+                            if len(pattern.event_locations) > 1000:
+                                pattern.event_locations = pattern.event_locations[-1000:]
+
+                        # Update timing
+                        if time_diff < pattern.min_time_to_event:
+                            pattern.min_time_to_event = time_diff
+                        if time_diff > pattern.max_time_to_event:
+                            pattern.max_time_to_event = time_diff
+
+                        # Update average time
+                        n = pattern.event_after_count
+                        pattern.avg_time_to_event = (
+                            (pattern.avg_time_to_event * (n - 1) + time_diff) / n
+                        )
+
+                        # Update probabilities
+                        pattern.update_probability()
+
+                # Mark as matched (once for both patterns)
+                item["matched_events"].append(event.event_type)
+
+                logger.debug(
+                    f"Pattern matched: {condition_key} ({temporal_key}) → {event.event_type}"
+                )
     
-    def get_probabilities(self, condition: Condition, min_observations: int = 5, 
+    def get_probabilities(self, condition: Condition, min_observations: int = 5,
                            category_filter: str | None = None) -> dict[str, dict]:
         """Get probabilistic estimates for a condition.
-        
+
+        Uses temporal patterns when they have enough observations (50+),
+        otherwise falls back to base patterns.
+
         Args:
             condition: The current condition
             min_observations: Minimum observations needed for reliable estimate
             category_filter: Filter by category ("crypto", "earthquake", "space_weather", "blockchain", or None for all except "other")
-            
+
         Returns:
             Dictionary of event_type → probability info
         """
         condition_key = condition.to_key()
+        temporal_key = condition.to_temporal_key()
         results = {}
-        
+
         if condition_key not in self._patterns:
             return results
-        
-        for event_type, pattern in self._patterns[condition_key].items():
+
+        # Minimum observations needed for temporal pattern to be used
+        TEMPORAL_MIN_OBS = 50
+
+        for event_type, base_pattern in self._patterns[condition_key].items():
             # Filter by category if specified
             event_def = self._event_definitions.get(event_type, {})
             event_category = event_def.get("category", "other")
-            
+
             # Skip "other" category events (internal use only)
             if event_category == "other":
                 continue
-            
+
             # Skip earthquake_moderate (M5.0+) - too frequent, not meaningful
             if event_type == "earthquake_moderate":
-                logger.debug(f"Skipping earthquake_moderate for {condition_key}")
                 continue
-            
+
             # Apply category filter if specified
             if category_filter and event_category != category_filter:
                 continue
-            
+
+            # Check if temporal pattern exists and has enough data
+            temporal_pattern = None
+            use_temporal = False
+            if temporal_key in self._patterns and event_type in self._patterns[temporal_key]:
+                temporal_pattern = self._patterns[temporal_key][event_type]
+                if temporal_pattern.condition_count >= TEMPORAL_MIN_OBS:
+                    use_temporal = True
+
+            # Choose which pattern to use
+            pattern = temporal_pattern if use_temporal else base_pattern
+
             # Only return if we have enough observations
             if pattern.condition_count >= min_observations:
                 # Only include if there's actual probability > 0
@@ -496,7 +625,14 @@ class HistoricalPatternTracker:
                     min_time_h = pattern.min_time_to_event / 3600 if pattern.min_time_to_event != float('inf') else None
                     max_time_h = pattern.max_time_to_event / 3600 if pattern.max_time_to_event > 0 else None
                     avg_time_h = pattern.avg_time_to_event / 3600
-                    
+
+                    # HONEST SYSTEM: Skip predictions with no meaningful lead time
+                    # If avg_time < 0.5 hours (30 min), it's not a prediction -
+                    # it's describing what's happening NOW. That's embarrassing.
+                    MIN_PREDICTION_LEAD_TIME = 0.5  # hours (30 minutes minimum)
+                    if avg_time_h < MIN_PREDICTION_LEAD_TIME:
+                        continue
+
                     # Filter by time window width for earthquakes
                     # Only show if window < 12 hours (precise prediction)
                     if 'earthquake' in event_type:
@@ -505,8 +641,8 @@ class HistoricalPatternTracker:
                             if window_width >= 12.0:
                                 # Window too wide - not precise enough
                                 continue
-                    
-                    results[event_type] = {
+
+                    result = {
                         "probability": pattern.actual_probability,
                         "avg_time_hours": avg_time_h,
                         "min_time_hours": min_time_h,
@@ -517,7 +653,21 @@ class HistoricalPatternTracker:
                         "severity": self._event_definitions.get(event_type, {}).get("severity", "medium"),
                         "category": self._event_definitions.get(event_type, {}).get("category", "other")
                     }
-        
+
+                    # Add temporal info if using temporal pattern
+                    if use_temporal:
+                        result["temporal_pattern"] = True
+                        result["time_bucket"] = condition.get_time_bucket()
+                        result["is_weekend"] = condition.is_weekend
+
+                    # Add region info for earthquake events
+                    if 'earthquake' in event_type and pattern.event_locations:
+                        region = get_most_frequent_region(pattern.event_locations)
+                        if region:
+                            result["region"] = region
+
+                    results[event_type] = result
+
         return results
     
     def get_calibration_stats(self) -> dict[str, Any]:

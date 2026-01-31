@@ -45,14 +45,14 @@
     <meta property="og:url" content="https://matrixwatcher.space/">
     <meta property="og:title" content="Matrix Watcher - Observing Correlations in Chaos">
     <meta property="og:description" content="Real-time anomaly detection across crypto, quantum RNG, space weather, and seismic data. We watch, we don't explain.">
-    <meta property="og:image" content="https://matrixwatcher.space/static/og-image.png">
+    <meta property="og:image" content="https://matrixwatcher.space/static/icon-512.png">
     <meta property="og:site_name" content="Matrix Watcher">
     
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Matrix Watcher - Observing Correlations in Chaos">
     <meta name="twitter:description" content="Real-time anomaly detection across crypto, quantum RNG, space weather, and seismic data.">
-    <meta name="twitter:image" content="https://matrixwatcher.space/static/og-image.png">
+    <meta name="twitter:image" content="https://matrixwatcher.space/static/icon-512.png">
     
     <!-- PWA -->
     <link rel="manifest" href="/static/manifest.json">
@@ -66,21 +66,59 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Structured Data -->
+    <!-- Structured Data - Enhanced for AI/LLM -->
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
-        "@type": "WebApplication",
-        "name": "Matrix Watcher",
-        "url": "https://matrixwatcher.space",
-        "description": "Real-time anomaly detection and correlation monitoring across multiple data domains",
-        "applicationCategory": "UtilitiesApplication",
-        "operatingSystem": "Any",
-        "offers": {
-            "@type": "Offer",
-            "price": "0",
-            "priceCurrency": "USD"
-        }
+        "@graph": [
+            {
+                "@type": "WebSite",
+                "name": "Matrix Watcher",
+                "url": "https://matrixwatcher.space",
+                "description": "Real-time anomaly detection and correlation monitoring system",
+                "potentialAction": {
+                    "@type": "SearchAction",
+                    "target": "https://matrixwatcher.space/?q={search_term_string}",
+                    "query-input": "required name=search_term_string"
+                }
+            },
+            {
+                "@type": "WebApplication",
+                "name": "Matrix Watcher",
+                "url": "https://matrixwatcher.space",
+                "description": "Real-time anomaly detection across crypto, quantum RNG, space weather, and seismic activity",
+                "applicationCategory": "UtilitiesApplication",
+                "operatingSystem": "Any",
+                "browserRequirements": "Requires JavaScript",
+                "offers": {
+                    "@type": "Offer",
+                    "price": "0",
+                    "priceCurrency": "USD"
+                },
+                "featureList": [
+                    "Real-time anomaly detection",
+                    "Multi-domain correlation analysis",
+                    "Crypto market monitoring (BTC, ETH)",
+                    "Quantum randomness tracking (ANU QRNG)",
+                    "Space weather observation",
+                    "Seismic activity monitoring",
+                    "Pattern recognition and learning",
+                    "Predictive analytics based on 2300+ patterns",
+                    "Automatic calibration and threshold adjustment",
+                    "Brier score tracking for prediction accuracy"
+                ]
+            },
+            {
+                "@type": "Organization",
+                "name": "Matrix Watcher",
+                "url": "https://matrixwatcher.space",
+                "logo": "https://matrixwatcher.space/static/icon-192.png",
+                "description": "Observing correlations in chaos. We watch, we don't explain.",
+                "sameAs": [
+                    "https://github.com/amois3/matrixwatcher.one"
+                ]
+            }
+        ]
     }
     </script>
     
@@ -469,7 +507,287 @@
             50% { box-shadow: 0 0 20px var(--neon-blue-glow); }
         }
 
-        /* Prediction Card */
+        /* Prediction Summary Card */
+        .prediction-summary {
+            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(0, 212, 255, 0.05) 100%);
+            border: 2px solid var(--neon-blue);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.1);
+        }
+
+        .summary-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .summary-icon {
+            font-size: 40px;
+        }
+
+        .summary-main {
+            flex: 1;
+        }
+
+        .summary-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .summary-prob {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--neon-green);
+            text-shadow: 0 0 20px var(--neon-green-glow);
+        }
+
+        .summary-desc {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .summary-label {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 2px;
+            opacity: 0.7;
+        }
+
+        .summary-direction {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 12px 14px;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            margin-bottom: 14px;
+        }
+
+        .direction-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .direction-hint {
+            font-size: 10px;
+            color: var(--text-muted);
+            opacity: 0.6;
+        }
+
+        .direction-label {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .direction-label.bias-bearish { color: var(--neon-red); }
+        .direction-label.bias-bullish { color: var(--neon-green); }
+        .direction-label.bias-slight-bear { color: #ff8866; }
+        .direction-label.bias-slight-bull { color: #66ff99; }
+        .direction-label.bias-neutral { color: var(--text-muted); }
+
+        .direction-bars {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .direction-bar {
+            height: 8px;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .direction-bar.down {
+            background: var(--neon-red);
+            box-shadow: 0 0 10px var(--neon-red-glow);
+        }
+
+        .direction-bar.up {
+            background: var(--neon-green);
+            box-shadow: 0 0 10px var(--neon-green-glow);
+        }
+
+        .direction-values {
+            display: flex;
+            gap: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+        }
+
+        .direction-down { color: var(--neon-red); }
+        .direction-up { color: var(--neon-green); }
+
+        .summary-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .summary-observations {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .summary-updated {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--neon-blue);
+            opacity: 0.8;
+        }
+
+        .details-toggle {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            color: var(--neon-blue);
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .details-toggle:hover {
+            background: var(--bg-card);
+            border-color: var(--neon-blue);
+        }
+
+        /* Tooltips for explanations */
+        .has-tooltip {
+            position: relative;
+            cursor: help;
+            border-bottom: 1px dotted var(--text-muted);
+        }
+
+        .has-tooltip::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-family: 'Inter', sans-serif;
+            white-space: nowrap;
+            max-width: 280px;
+            white-space: normal;
+            text-align: center;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s, visibility 0.2s;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            line-height: 1.4;
+        }
+
+        .has-tooltip:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Prediction Details (collapsible) */
+        .prediction-details-section {
+            display: none;
+            margin-top: 12px;
+        }
+
+        .prediction-details-section.expanded {
+            display: block;
+        }
+
+        .prediction-category {
+            margin-bottom: 16px;
+        }
+
+        .category-header {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .prediction-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            margin-bottom: 6px;
+        }
+
+        .prediction-item-icon {
+            font-size: 20px;
+            width: 32px;
+            text-align: center;
+        }
+
+        .prediction-item-content {
+            flex: 1;
+        }
+
+        .prediction-item-title {
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .prediction-item-meta {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .prediction-item-prob {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+
+        .prob-green {
+            background: rgba(0, 255, 136, 0.15);
+            color: var(--neon-green);
+        }
+
+        .prob-yellow {
+            background: rgba(255, 238, 0, 0.15);
+            color: var(--neon-yellow);
+        }
+
+        .prob-orange {
+            background: rgba(255, 149, 0, 0.15);
+            color: var(--neon-orange);
+        }
+
+        .prob-gray {
+            background: var(--bg-card);
+            color: var(--text-muted);
+        }
+
+        /* Legacy styles for fallback */
         .prediction-card {
             display: flex;
             gap: 16px;
@@ -552,18 +870,18 @@
         .prediction-details .value.red { color: var(--neon-red); }
         .prediction-details .value.orange { color: var(--neon-orange); }
         .prediction-details .value.blue { color: var(--neon-blue); }
-        
+
         .prediction-details .value.prob-high { color: var(--neon-green); }
         .prediction-details .value.prob-medium { color: var(--neon-orange); }
         .prediction-details .value.prob-low { color: var(--text-muted); }
-        
+
         .prediction-time {
             font-size: 13px;
             color: var(--text-muted);
             margin: 6px 0 10px 0;
             font-family: 'JetBrains Mono', monospace;
         }
-        
+
         .prediction-alternatives {
             margin-top: 12px;
             padding: 10px 14px;
@@ -574,7 +892,7 @@
             border-left: 3px solid var(--neon-purple);
             font-weight: 500;
         }
-        
+
         .alt-hint {
             display: block;
             font-size: 12px;
@@ -582,7 +900,7 @@
             margin-top: 4px;
             font-weight: 400;
         }
-        
+
         .prediction-explanation {
             margin: 12px 0;
             padding: 10px;
@@ -919,6 +1237,111 @@
             color: var(--neon-green);
             font-family: 'JetBrains Mono', monospace;
         }
+
+        /* Install Banner */
+        .install-banner {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+            color: #000;
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 212, 255, 0.4);
+            display: none;
+            align-items: center;
+            gap: 16px;
+            z-index: 1000;
+            font-family: 'JetBrains Mono', monospace;
+            animation: slideUp 0.4s ease;
+            max-width: 90%;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateX(-50%) translateY(100px); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
+
+        .install-banner.show {
+            display: flex;
+        }
+
+        .install-banner-icon {
+            font-size: 32px;
+        }
+
+        .install-banner-content {
+            flex: 1;
+        }
+
+        .install-banner-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .install-banner-text {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .install-banner-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .install-btn {
+            background: #000;
+            color: var(--neon-green);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .install-btn:hover {
+            background: #1a1a1a;
+            transform: scale(1.05);
+        }
+
+        .install-btn-close {
+            background: rgba(0, 0, 0, 0.3);
+            color: #fff;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .install-btn-close:hover {
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        @media (max-width: 768px) {
+            .install-banner {
+                bottom: 10px;
+                padding: 12px 16px;
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .install-banner-buttons {
+                width: 100%;
+                flex-direction: column;
+            }
+
+            .install-btn, .install-btn-close {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body style="background:#0d0d12;color:#fff;">
@@ -1067,9 +1490,22 @@
 
             <div class="modal-section">
                 <h3>🔓 Open Source</h3>
-                <p>Matrix Watcher is open source and available on <a href="https://github.com/amois3/matrix_watcher" target="_blank" style="color: var(--neon-blue);">GitHub</a>. Built with Python, running 24/7, collecting data since December 2025.</p>
+                <p>Matrix Watcher is open source and available on <a href="https://github.com/amois3/matrixwatcher.one" target="_blank" style="color: var(--neon-blue);">GitHub</a>. Built with Python, running 24/7, collecting data since December 2025.</p>
                 <p style="margin-top: 12px; font-size: 13px; color: var(--text-muted);">Note: The codebase is open source. Historical data and trained models remain proprietary.</p>
             </div>
+        </div>
+    </div>
+
+    <!-- Install Banner -->
+    <div class="install-banner" id="installBanner">
+        <div class="install-banner-icon">📱</div>
+        <div class="install-banner-content">
+            <div class="install-banner-title">Install Matrix Watcher</div>
+            <div class="install-banner-text">Get faster access and work offline</div>
+        </div>
+        <div class="install-banner-buttons">
+            <button class="install-btn" id="installButton">Install</button>
+            <button class="install-btn-close" id="closeBanner">Later</button>
         </div>
     </div>
 
@@ -1160,7 +1596,7 @@
         function renderPredictions(predictions) {
             const panel = document.getElementById('predictionsPanel');
             const count = document.getElementById('predictionsCount');
-            
+
             if (predictions.length === 0) {
                 count.textContent = '0';
                 panel.innerHTML = `
@@ -1171,7 +1607,7 @@
                 `;
                 return;
             }
-            
+
             // Group predictions by event type
             const grouped = {};
             predictions.forEach(p => {
@@ -1180,60 +1616,317 @@
                 }
                 grouped[p.event].push(p);
             });
-            
-            // For each event, pick the BEST prediction:
-            // 1. Filter by highest probability (100%)
-            // 2. Among those, pick the MOST RECENT (latest timestamp)
-            // 3. If no 100%, then by probability + time
+
+            // For each event, pick the BEST prediction
             const bestPredictions = [];
             for (const [event, preds] of Object.entries(grouped)) {
-                // Find max probability
                 const maxProb = Math.max(...preds.map(p => p.probability));
-                
-                // Get all predictions with max probability
                 const topPreds = preds.filter(p => p.probability === maxProb);
-                
-                // Among top probability, pick most recent
                 topPreds.sort((a, b) => b.timestamp - a.timestamp);
-                
                 const best = topPreds[0];
-                best.alternatives = preds.filter(p => p.id !== best.id); // All others
+                best.alternatives = preds.filter(p => p.id !== best.id);
                 best.total_conditions = preds.length;
                 bestPredictions.push(best);
             }
-            
-            // Sort best predictions by probability, then by recency
-            bestPredictions.sort((a, b) => {
-                if (b.probability !== a.probability) return b.probability - a.probability;
-                return b.timestamp - a.timestamp; // Most recent first
-            });
-            
-            count.textContent = bestPredictions.length;
-            panel.innerHTML = bestPredictions.map(p => createPredictionCard(p)).join('');
+
+            // Separate by asset/category
+            const btcPreds = bestPredictions.filter(p => p.event.toLowerCase().includes('btc'));
+            const ethPreds = bestPredictions.filter(p => p.event.toLowerCase().includes('eth'));
+            const earthquakePreds = bestPredictions.filter(p => p.event.includes('earthquake'));
+            const solarPreds = bestPredictions.filter(p => p.event.includes('solar') || p.event.includes('storm'));
+
+            // Count cards with meaningful predictions (>5%)
+            let cardCount = 0;
+            if (btcPreds.some(p => p.probability >= 5)) cardCount++;
+            if (ethPreds.some(p => p.probability >= 5)) cardCount++;
+            if (earthquakePreds.some(p => p.probability >= 2)) cardCount++;
+            if (solarPreds.some(p => p.probability >= 2)) cardCount++;
+            count.textContent = cardCount;
+
+            let html = '';
+
+            // BTC Card
+            if (btcPreds.length > 0) {
+                html += createAssetCard('₿ Bitcoin', 'btc', btcPreds, '#f7931a');
+            }
+
+            // ETH Card
+            if (ethPreds.length > 0) {
+                html += createAssetCard('Ξ Ethereum', 'eth', ethPreds, '#627eea');
+            }
+
+            // Earthquake Card
+            if (earthquakePreds.length > 0 && earthquakePreds.some(p => p.probability >= 2)) {
+                html += createExternalCard('🌍 Earthquake', 'earthquake', earthquakePreds, '#ff9500');
+            }
+
+            // Solar Card
+            if (solarPreds.length > 0 && solarPreds.some(p => p.probability >= 2)) {
+                html += createExternalCard('☀️ Solar Activity', 'solar', solarPreds, '#ffee00');
+            }
+
+            panel.innerHTML = html || `
+                <div class="empty-state">
+                    <div class="empty-state-icon">🔮</div>
+                    <div>No significant predictions</div>
+                </div>
+            `;
         }
 
-        function createPredictionCard(p) {
-            const probClass = p.probability >= 70 ? 'prob-high' : 
-                             p.probability >= 50 ? 'prob-medium' : 'prob-low';
-            
+        function createAssetCard(title, assetId, predictions, accentColor) {
+            // Separate by type - scientific categorization
+            const volatility = predictions.filter(p => p.event.includes('volatility'));
+            const dumps = predictions.filter(p => p.event.includes('dump'));
+            const pumps = predictions.filter(p => p.event.includes('pump'));
+
+            // Get volatility predictions (movement regardless of direction)
+            const mainVolatility = volatility.length > 0
+                ? volatility.reduce((a, b) => a.probability > b.probability ? a : b)
+                : null;
+
+            // Get directional probabilities (specific direction)
+            const maxDump = dumps.length > 0 ? Math.max(...dumps.map(p => p.probability)) : 0;
+            const maxPump = pumps.length > 0 ? Math.max(...pumps.map(p => p.probability)) : 0;
+
+            // Direction analysis - scientific approach
+            // Only show direction if we have meaningful data
+            const hasDirectionData = maxDump > 0 || maxPump > 0;
+            const dumpRatio = maxPump > 0 ? maxDump / maxPump : (maxDump > 0 ? 99 : 1);
+            const pumpRatio = maxDump > 0 ? maxPump / maxDump : (maxPump > 0 ? 99 : 1);
+
+            // Direction bars - proportional to actual probabilities
+            const totalDir = maxDump + maxPump || 1;
+            const dumpWidth = Math.round((maxDump / totalDir) * 100);
+            const pumpWidth = Math.round((maxPump / totalDir) * 100);
+
+            // Direction interpretation - based on ratio, not absolute threshold
+            let directionHtml = '';
+            if (hasDirectionData) {
+                let biasIcon, biasText, biasClass, biasTooltip;
+
+                if (dumpRatio >= 3) {
+                    biasIcon = '📉';
+                    biasText = 'Bearish tendency';
+                    biasClass = 'bias-bearish';
+                    biasTooltip = 'Price drop is significantly more likely than rise';
+                } else if (pumpRatio >= 3) {
+                    biasIcon = '📈';
+                    biasText = 'Bullish tendency';
+                    biasClass = 'bias-bullish';
+                    biasTooltip = 'Price rise is significantly more likely than drop';
+                } else if (dumpRatio >= 1.5) {
+                    biasIcon = '↘️';
+                    biasText = 'Slight bearish';
+                    biasClass = 'bias-slight-bear';
+                    biasTooltip = 'Price drop is slightly more likely';
+                } else if (pumpRatio >= 1.5) {
+                    biasIcon = '↗️';
+                    biasText = 'Slight bullish';
+                    biasClass = 'bias-slight-bull';
+                    biasTooltip = 'Price rise is slightly more likely';
+                } else {
+                    biasIcon = '⚖️';
+                    biasText = 'Balanced';
+                    biasClass = 'bias-neutral';
+                    biasTooltip = 'No clear direction - could go either way';
+                }
+
+                directionHtml = `
+                    <div class="summary-direction">
+                        <div class="direction-header">
+                            <span class="direction-label ${biasClass} has-tooltip" data-tooltip="${biasTooltip}">${biasIcon} ${biasText}</span>
+                            <span class="direction-hint">drop vs surge probability</span>
+                        </div>
+                        <div class="direction-bars">
+                            <div class="direction-bar down" style="width: ${dumpWidth}%"></div>
+                            <div class="direction-bar up" style="width: ${pumpWidth}%"></div>
+                        </div>
+                        <div class="direction-values">
+                            <span class="direction-down has-tooltip" data-tooltip="Probability of significant price drop">↓ ${maxDump}%</span>
+                            <span class="direction-up has-tooltip" data-tooltip="Probability of significant price surge">↑ ${maxPump}%</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Main display - what user sees first
+            let mainProb, mainDesc, mainTime, mainLabel;
+
+            if (mainVolatility && mainVolatility.probability >= 20) {
+                // High volatility is main message
+                mainProb = mainVolatility.probability;
+                mainDesc = mainVolatility.description;
+                mainTime = formatTime(mainVolatility.avg_time_hours);
+                mainLabel = 'Volatility signal';
+            } else if (maxDump >= 10 || maxPump >= 10) {
+                // Significant directional signal
+                if (maxDump > maxPump) {
+                    mainProb = maxDump;
+                    mainDesc = dumps.find(p => p.probability === maxDump)?.description || 'Price drop';
+                    mainTime = formatTime(dumps.find(p => p.probability === maxDump)?.avg_time_hours || 0);
+                    mainLabel = 'Drop probability';
+                } else {
+                    mainProb = maxPump;
+                    mainDesc = pumps.find(p => p.probability === maxPump)?.description || 'Price surge';
+                    mainTime = formatTime(pumps.find(p => p.probability === maxPump)?.avg_time_hours || 0);
+                    mainLabel = 'Surge probability';
+                }
+            } else if (mainVolatility) {
+                // Lower volatility
+                mainProb = mainVolatility.probability;
+                mainDesc = mainVolatility.description;
+                mainTime = formatTime(mainVolatility.avg_time_hours);
+                mainLabel = 'Volatility signal';
+            } else {
+                // Weak signals - be honest about uncertainty
+                mainProb = Math.max(maxDump, maxPump);
+                // Only mention direction if ratio is significant
+                if (dumpRatio >= 1.5) {
+                    mainDesc = 'Slight bearish signal';
+                } else if (pumpRatio >= 1.5) {
+                    mainDesc = 'Slight bullish signal';
+                } else {
+                    mainDesc = 'Low probability movement';
+                    // Don't show direction bar for truly balanced weak signals
+                    directionHtml = '';
+                }
+                mainTime = '';
+                mainLabel = 'Weak signal';
+            }
+
+            const observations = predictions[0]?.observations || 0;
+            const lastUpdate = predictions[0]?.timestamp || 0;
+            const updateStr = formatTimeAgo(lastUpdate);
+
+            // Tooltip texts
+            const labelTooltips = {
+                'Volatility signal': 'Price movement expected (up or down). Higher % = more likely to move significantly.',
+                'Drop probability': 'Chance of price dropping based on historical patterns.',
+                'Surge probability': 'Chance of price rising based on historical patterns.',
+                'Weak signal': 'Low confidence prediction. Not enough historical data for strong signal.'
+            };
+            const labelTooltip = labelTooltips[mainLabel] || '';
+
+            const timeTooltip = mainTime ? 'Average time until event occurs, based on past patterns' : '';
+
+            return `
+                <div class="prediction-summary" style="border-color: ${accentColor}; background: linear-gradient(135deg, var(--bg-card) 0%, ${accentColor}11 100%);">
+                    <div class="summary-header">
+                        <div class="summary-icon" style="font-size: 32px;">${title.split(' ')[0]}</div>
+                        <div class="summary-main">
+                            <div class="summary-title" style="color: ${accentColor};">${title}</div>
+                            <div class="summary-prob has-tooltip" data-tooltip="Probability based on ${observations.toLocaleString()} similar situations in the past">${mainProb}%</div>
+                            <div class="summary-desc">${mainDesc}${mainTime ? ` • <span class="has-tooltip" data-tooltip="${timeTooltip}">~${mainTime}</span>` : ''}</div>
+                            <div class="summary-label has-tooltip" data-tooltip="${labelTooltip}">${mainLabel}</div>
+                        </div>
+                    </div>
+
+                    ${directionHtml}
+
+                    <div class="summary-meta">
+                        <span class="summary-observations has-tooltip" data-tooltip="Number of similar conditions observed. More patterns = more reliable prediction.">${observations.toLocaleString()} patterns</span>
+                        ${updateStr ? `<span class="summary-updated">⟳ ${updateStr}</span>` : ''}
+                        <button class="details-toggle" onclick="toggleAssetDetails('${assetId}')">Details ▼</button>
+                    </div>
+
+                    <div class="prediction-details-section" id="${assetId}Details">
+                        ${predictions.filter(p => p.probability >= 5).map(p => createPredictionItem(p)).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function createExternalCard(title, cardId, predictions, accentColor) {
+            const mainPred = predictions.reduce((a, b) => a.probability > b.probability ? a : b);
+            const timeStr = formatTime(mainPred.avg_time_hours);
+            const updateStr = formatTimeAgo(mainPred.timestamp);
+
+            // Region info for earthquake
+            const regionStr = mainPred.region ? ` • ${mainPred.region}` : '';
+
+            return `
+                <div class="prediction-summary" style="border-color: ${accentColor}; background: linear-gradient(135deg, var(--bg-card) 0%, ${accentColor}11 100%);">
+                    <div class="summary-header">
+                        <div class="summary-icon" style="font-size: 32px;">${title.split(' ')[0]}</div>
+                        <div class="summary-main">
+                            <div class="summary-title" style="color: ${accentColor};">${title}</div>
+                            <div class="summary-prob" style="font-size: 22px;">${mainPred.probability}%</div>
+                            <div class="summary-desc">${mainPred.description} • ~${timeStr}${regionStr}</div>
+                        </div>
+                    </div>
+
+                    <div class="summary-meta">
+                        <span class="summary-observations">${mainPred.observations.toLocaleString()} patterns</span>
+                        ${updateStr ? `<span class="summary-updated">⟳ ${updateStr}</span>` : ''}
+                        ${predictions.length > 1 ? `<button class="details-toggle" onclick="toggleAssetDetails('${cardId}')">Details ▼</button>` : ''}
+                    </div>
+
+                    ${predictions.length > 1 ? `
+                    <div class="prediction-details-section" id="${cardId}Details">
+                        ${predictions.filter(p => p.probability >= 2).map(p => createPredictionItem(p)).join('')}
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        function createPredictionItem(p) {
+            const probClass = p.probability >= 60 ? 'prob-green' :
+                             p.probability >= 30 ? 'prob-yellow' :
+                             p.probability >= 10 ? 'prob-orange' : 'prob-gray';
             const timeStr = formatTime(p.avg_time_hours);
-            const direction = p.event.includes('pump') ? 'green' : 
-                             p.event.includes('dump') ? 'red' : 'blue';
-            
-            // Human-readable trigger description with time
+
+            // Show temporal badge if using temporal pattern
+            const temporalBadge = p.temporal_pattern
+                ? `<span style="font-size:10px;color:var(--neon-purple);margin-left:6px;">⏰ ${p.time_bucket || 'temporal'}</span>`
+                : '';
+
+            return `
+                <div class="prediction-item">
+                    <div class="prediction-item-icon">${p.icon}</div>
+                    <div class="prediction-item-content">
+                        <div class="prediction-item-title">${p.description}${temporalBadge}</div>
+                        <div class="prediction-item-meta">~${timeStr} • ${p.observations.toLocaleString()} obs</div>
+                    </div>
+                    <div class="prediction-item-prob ${probClass}">${p.probability}%</div>
+                </div>
+            `;
+        }
+
+        function toggleAssetDetails(assetId) {
+            const details = document.getElementById(assetId + 'Details');
+            const btn = details.previousElementSibling.querySelector('.details-toggle');
+
+            if (details.classList.contains('expanded')) {
+                details.classList.remove('expanded');
+                btn.textContent = 'Details ▼';
+            } else {
+                details.classList.add('expanded');
+                btn.textContent = 'Details ▲';
+            }
+        }
+
+        // Legacy function
+        function toggleDetails() {
+            toggleAssetDetails('prediction');
+        }
+
+        // Legacy function for backwards compatibility
+        function createPredictionCard(p) {
+            const probClass = p.probability >= 70 ? 'prob-high' :
+                             p.probability >= 50 ? 'prob-medium' : 'prob-low';
+
+            const timeStr = formatTime(p.avg_time_hours);
             const triggerText = formatTrigger(p.condition, p.event, timeStr);
-            
-            // Format detection time
             const detectionTime = formatDetectionTime(p.timestamp);
-            
-            // Alternative conditions info
-            const altInfo = p.total_conditions > 1 
+
+            const altInfo = p.total_conditions > 1
                 ? `<div class="prediction-alternatives">
                      ${p.total_conditions} different patterns observed for this event
                      <span class="alt-hint">Showing most recent with highest probability</span>
                    </div>`
                 : '';
-            
+
             return `
                 <div class="card prediction-card">
                     <div class="prediction-icon">${p.icon}</div>
@@ -1326,6 +2019,17 @@
             if (hours < 1) return `${Math.round(hours * 60)}min`;
             if (hours < 24) return `${hours.toFixed(1)}h`;
             return `${(hours / 24).toFixed(1)}d`;
+        }
+
+        function formatTimeAgo(timestamp) {
+            if (!timestamp) return '';
+            const now = Date.now() / 1000;
+            const diff = now - timestamp;
+
+            if (diff < 60) return 'just now';
+            if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+            if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+            return `${Math.floor(diff / 86400)}d ago`;
         }
         
         function formatDetectionTime(timestamp) {
@@ -1420,9 +2124,90 @@
         // Poll every 10 seconds
         setInterval(fetchData, 10000);
 
-        // PWA
+        // PWA - Service Worker
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('/static/sw.js').catch(() => {});
+        }
+
+        // PWA - Install Banner Management
+        let deferredPrompt = null;
+        const installBanner = document.getElementById('installBanner');
+        const installButton = document.getElementById('installButton');
+        const closeBanner = document.getElementById('closeBanner');
+
+        // Check if already installed
+        function isAppInstalled() {
+            return window.matchMedia('(display-mode: standalone)').matches ||
+                   window.navigator.standalone === true;
+        }
+
+        // Check if user dismissed banner
+        function wasBannerDismissed() {
+            const dismissed = localStorage.getItem('installBannerDismissed');
+            if (dismissed) {
+                const dismissedTime = parseInt(dismissed);
+                const hoursSinceDismissed = (Date.now() - dismissedTime) / (1000 * 60 * 60);
+                return hoursSinceDismissed < 24; // Show again after 24 hours
+            }
+            return false;
+        }
+
+        // Show banner after 3 seconds
+        function showInstallBanner() {
+            if (!isAppInstalled() && !wasBannerDismissed()) {
+                setTimeout(() => {
+                    installBanner.classList.add('show');
+                }, 3000);
+            }
+        }
+
+        // Handle beforeinstallprompt event (Chrome/Edge)
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            console.log('PWA: Install prompt available');
+            showInstallBanner();
+        });
+
+        // Install button click
+        installButton.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                // Chrome/Edge - use native prompt
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`PWA: User ${outcome} the install`);
+                if (outcome === 'accepted') {
+                    installBanner.classList.remove('show');
+                }
+                deferredPrompt = null;
+            } else {
+                // Safari/iOS - show instructions
+                alert('To install:\n\n1. Tap the Share button\n2. Select "Add to Home Screen"\n3. Tap "Add"');
+            }
+        });
+
+        // Close banner button
+        closeBanner.addEventListener('click', () => {
+            installBanner.classList.remove('show');
+            localStorage.setItem('installBannerDismissed', Date.now().toString());
+        });
+
+        // Track installation
+        window.addEventListener('appinstalled', () => {
+            console.log('PWA: App installed successfully');
+            installBanner.classList.remove('show');
+            deferredPrompt = null;
+        });
+
+        // Show banner on first visit (even without beforeinstallprompt)
+        // This works for all browsers including Safari
+        if (!isAppInstalled() && !wasBannerDismissed()) {
+            setTimeout(() => {
+                // If beforeinstallprompt didn't fire, show banner anyway
+                if (!installBanner.classList.contains('show')) {
+                    installBanner.classList.add('show');
+                }
+            }, 3000);
         }
     </script>
 </body>

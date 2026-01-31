@@ -266,8 +266,8 @@ class MatrixWatcher:
                     color = "#8888ff"
                 
                 pred_id = f"{condition.to_key()}_{event_type}"
-                
-                new_predictions.append({
+
+                prediction_data = {
                     "id": pred_id,
                     "condition": condition.to_key(),
                     "condition_level": condition.level,
@@ -282,7 +282,19 @@ class MatrixWatcher:
                     "icon": icon,
                     "color": color,
                     "timestamp": condition.timestamp
-                })
+                }
+
+                # Add temporal info if available
+                if pred.get("temporal_pattern"):
+                    prediction_data["temporal_pattern"] = True
+                    prediction_data["time_bucket"] = pred.get("time_bucket", "")
+                    prediction_data["is_weekend"] = pred.get("is_weekend", False)
+
+                # Add region for earthquake events
+                if pred.get("region"):
+                    prediction_data["region"] = pred.get("region")
+
+                new_predictions.append(prediction_data)
             
             # Merge: remove old predictions with same ID, add new ones
             existing_ids = {p["id"] for p in new_predictions}

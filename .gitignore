@@ -35,6 +35,90 @@ logs/
 # Local notes and docs
 *.local.md
 notes/
+notes
+
+# Russian documentation (local only)
+*_ГОТОВ*.md
+*_ГОТОВО*.md
+*ИСПРАВЛЕН*.md
+АВТОКАЛИБРОВКА.md
+АУДИТ*.md
+БОЕВОЕ*.md
+ВРЕМЯ*.md
+ГРУППИРОВКА*.md
+ДВЕ_КАЛИБРОВКИ*.md
+ДОБАВЛЕНО*.md
+ЗАПУСК*.txt
+ИЗМЕНЕНИЕ*.md
+ИСПРАВЛЕНИЕ*.md
+КАК_*.md
+КАЛИБРОВКА*.md
+МОИ_ПОДОЗРЕНИЯ*.md
+НАЙДЕНА*.md
+ПЛАН*.md
+ПОРОГИ*.md
+ПРИМЕР*.md
+ПРОБЛЕМА*.md
+ПРОВЕРКА*.md
+ПРОЦЕССЫ*.md
+СТАТУС*.md
+УДАЛЕНИЕ*.md
+ФИЛОСОФИЯ*.md
+ФИНАЛЬНЫЙ*.md
+ЧИСТКА*.md
+ЧИТАЙ*.md
+ЧТО_*.md
+AI_SEO*.md
+PWA_*.md
+PATTERN_TRACKER*.md
+OG_IMAGE*.md
+
+# Oracle/Railway/Cloudflare setup (local)
+ORACLE_*.md
+ORACLE_*.txt
+RAILWAY_*.md
+CLOUDFLARE_*.md
+railway_setup.md
+
+# Local utility scripts
+cloudflared
+cloudflare_auto_setup.py
+oracle_instance_creator.py
+railway_auto_deploy.py
+setup_*.sh
+setup_*.py
+update_*.py
+upload_*.sh
+verify_*.py
+check_*.py
+rebuild_*.py
+analyze.py
+start.py
+test_*.py
+
+# Local backups
+logs_backup*/
+src/stable_ver/
+
+# Kiro/other IDE
+.kiro/
+
+# Local config files
+Procfile
+railway.json
+pyproject.toml
+pytest.ini
+
+# Local English docs
+CRYPTO_*.md
+ROADMAP_*.md
+SEO_SETUP.md
+SUMMARY.md
+SYSTEM_AUDIT*.md
+UPGRADE_INSTRUCTIONS.md
+
+# Stable version backup
+src/stable_ver/
 
 # Test cache
 .hypothesis/
@@ -42,3 +126,6 @@ notes/
 
 # Mac
 .DS_Store
+
+# Claude agent rules (local only)
+.claude/

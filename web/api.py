@@ -137,67 +137,71 @@ def load_patterns() -> dict:
 def get_active_predictions(use_cache: bool = True) -> list[dict]:
     """Get active predictions from file (real-time sync with main.py).
 
-    ЧЕСТНАЯ СИСТЕМА: Показываем только ЛУЧШИЙ prediction для каждого события.
-    - Группируем по event type
-    - Выбираем самый свежий и специфичный
-    - Показываем ЕГО данные без обмана
+    HONEST SYSTEM: Show only the BEST prediction for each event.
+    - Group by event type
+    - Select the freshest and most specific
+    - Show ITS data without manipulation
     """
     # Check cache first
     if use_cache and time.time() - _cache["predictions"]["timestamp"] < CACHE_TTL:
         return _cache["predictions"]["data"]
 
     predictions_file = Path("logs/predictions/current.json")
-    
+
     if not predictions_file.exists():
         return []
-    
+
     try:
         with open(predictions_file, 'r') as f:
             data = json.load(f)
-        
+
         predictions = data.get("predictions", [])
         last_update = data.get("last_update", 0)
-        
+
         # Filter out old predictions (older than 24 hours)
+        # AND predictions with no meaningful lead time (< 30 min)
+        # A prediction of "0.0 hours" is not a prediction - it's current state
         cutoff = time.time() - (24 * 3600)
+        MIN_LEAD_TIME = 0.5  # hours (30 minutes minimum for honest predictions)
         active_predictions = [
-            p for p in predictions 
+            p for p in predictions
             if p.get("timestamp", 0) > cutoff
+            and p.get("avg_time_hours", 0) >= MIN_LEAD_TIME
         ]
-        
-        # ДЕДУПЛИКАЦИЯ: Один prediction на событие
-        # Группируем по event type
+
+        # DEDUPLICATION: One prediction per event
+        # Group by event type
         by_event = {}
         for p in active_predictions:
             event = p.get("event", "unknown")
             if event not in by_event:
                 by_event[event] = []
             by_event[event].append(p)
-        
-        # Выбираем ЛУЧШИЙ для каждого события
+
+        # Select the BEST for each event
         best_predictions = []
         for event, preds in by_event.items():
-            # Сортируем по приоритету:
-            # 1. Больше источников в condition (более специфичный паттерн)
-            # 2. Свежее (недавно созданный)
-            # 3. Больше observations (надёжнее)
+            # Sort by priority:
+            # 1. More sources in condition (more specific pattern)
+            # 2. Fresher (recently created)
+            # 3. More observations (more reliable)
             def score_prediction(p):
                 condition = p.get("condition", "")
-                source_count = condition.count("_") + 1  # L2_crypto_quantum = 2 источника
+                source_count = condition.count("_") + 1  # L2_crypto_quantum = 2 sources
                 timestamp = p.get("timestamp", 0)
                 observations = p.get("observations", 0)
-                
-                # Приоритет: специфичность > свежесть > надёжность
+
+                # Priority: specificity > freshness > reliability
                 return (
-                    source_count,  # Больше источников = интереснее
-                    timestamp,     # Свежее = актуальнее
-                    min(observations, 1000)  # Надёжнее, но не даём огромным числам доминировать
+                    source_count,  # More sources = more interesting
+                    timestamp,     # Fresher = more relevant
+                    min(observations, 1000)  # More reliable, but don't let huge numbers dominate
                 )
-            
+
             best = max(preds, key=score_prediction)
             best_predictions.append(best)
-        
-        # Сортируем по времени создания (свежие первые)
+
+        # Sort by creation time (newest first)
         best_predictions.sort(key=lambda p: p.get("timestamp", 0), reverse=True)
 
         # Cache result
