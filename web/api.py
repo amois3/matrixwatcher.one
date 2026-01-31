@@ -8,10 +8,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -33,6 +34,22 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# HTTPS Redirect middleware for SEO (HTTP -> HTTPS)
+class HTTPSRedirectMiddleware(BaseHTTPMiddleware):
+    """Redirect HTTP to HTTPS for proper SEO canonical handling."""
+
+    async def dispatch(self, request: Request, call_next):
+        # Check X-Forwarded-Proto header (set by Cloudflare/Railway)
+        forwarded_proto = request.headers.get("x-forwarded-proto", "https")
+        if forwarded_proto == "http" and "localhost" not in str(request.url):
+            https_url = str(request.url).replace("http://", "https://", 1)
+            return RedirectResponse(https_url, status_code=301)
+        return await call_next(request)
+
+
+app.add_middleware(HTTPSRedirectMiddleware)
 
 # WebSocket connections
 connected_clients: list[WebSocket] = []
