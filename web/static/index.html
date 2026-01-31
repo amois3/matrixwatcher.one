@@ -1840,9 +1840,15 @@
             const mainPred = predictions.reduce((a, b) => a.probability > b.probability ? a : b);
             const timeStr = formatTime(mainPred.avg_time_hours);
             const updateStr = formatTimeAgo(mainPred.timestamp);
+            const observations = mainPred.observations || 0;
 
             // Region info for earthquake
             const regionStr = mainPred.region ? ` • ${mainPred.region}` : '';
+
+            // Tooltips
+            const probTooltip = `Probability based on ${observations.toLocaleString()} similar situations in the past`;
+            const timeTooltip = `Average time from precursor detection to event occurrence`;
+            const patternsTooltip = `Number of similar conditions observed. More patterns = more reliable estimate.`;
 
             return `
                 <div class="prediction-summary" style="border-color: ${accentColor}; background: linear-gradient(135deg, var(--bg-card) 0%, ${accentColor}11 100%);">
@@ -1850,13 +1856,13 @@
                         <div class="summary-icon" style="font-size: 32px;">${title.split(' ')[0]}</div>
                         <div class="summary-main">
                             <div class="summary-title" style="color: ${accentColor};">${title}</div>
-                            <div class="summary-prob" style="font-size: 22px;">${mainPred.probability}%</div>
-                            <div class="summary-desc">${mainPred.description} • ~${timeStr}${regionStr}</div>
+                            <div class="summary-prob has-tooltip" data-tooltip="${probTooltip}" style="font-size: 22px;">${mainPred.probability}%</div>
+                            <div class="summary-desc">${mainPred.description} • <span class="has-tooltip" data-tooltip="${timeTooltip}">~${timeStr}</span>${regionStr}</div>
                         </div>
                     </div>
 
                     <div class="summary-meta">
-                        <span class="summary-observations">${mainPred.observations.toLocaleString()} patterns</span>
+                        <span class="summary-observations has-tooltip" data-tooltip="${patternsTooltip}">${observations.toLocaleString()} patterns</span>
                         ${updateStr ? `<span class="summary-updated">⟳ ${updateStr}</span>` : ''}
                         ${predictions.length > 1 ? `<button class="details-toggle" onclick="toggleAssetDetails('${cardId}')">Details ▼</button>` : ''}
                     </div>
@@ -1875,18 +1881,23 @@
                              p.probability >= 30 ? 'prob-yellow' :
                              p.probability >= 10 ? 'prob-orange' : 'prob-gray';
             const timeStr = formatTime(p.avg_time_hours);
+            const observations = p.observations || 0;
 
             // Show temporal badge if using temporal pattern
             const temporalBadge = p.temporal_pattern
                 ? `<span style="font-size:10px;color:var(--neon-purple);margin-left:6px;">⏰ ${p.time_bucket || 'temporal'}</span>`
                 : '';
 
+            // Tooltips
+            const timeTooltip = `Average time until event occurs`;
+            const obsTooltip = `Observations of this pattern`;
+
             return `
                 <div class="prediction-item">
                     <div class="prediction-item-icon">${p.icon}</div>
                     <div class="prediction-item-content">
                         <div class="prediction-item-title">${p.description}${temporalBadge}</div>
-                        <div class="prediction-item-meta">~${timeStr} • ${p.observations.toLocaleString()} obs</div>
+                        <div class="prediction-item-meta"><span class="has-tooltip" data-tooltip="${timeTooltip}">~${timeStr}</span> • <span class="has-tooltip" data-tooltip="${obsTooltip}">${observations.toLocaleString()} obs</span></div>
                     </div>
                     <div class="prediction-item-prob ${probClass}">${p.probability}%</div>
                 </div>
